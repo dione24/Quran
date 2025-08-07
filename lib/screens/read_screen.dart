@@ -7,6 +7,7 @@ import '../providers/app_providers.dart';
 import '../widgets/surah_selector.dart';
 import '../widgets/ayah_tile.dart';
 import '../models/surah.dart';
+import '../services/recitation_service.dart';
 
 class ReadScreen extends ConsumerStatefulWidget {
   final int? surahNumber;
@@ -40,6 +41,7 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
     final quranDataAsync = ref.watch(quranDataProvider);
     final currentAyah = ref.watch(currentAyahProvider);
     final isSpeaking = ref.watch(isSpeakingProvider);
+    final reciter = ref.watch(recitationServiceProvider).currentReciter;
 
     return Scaffold(
       appBar: AppBar(
@@ -66,6 +68,11 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
             tooltip: useRecitation ? 'Utiliser synthèse vocale' : 'Utiliser récitation enregistrée',
           ),
           IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: _showReciterDialog,
+            tooltip: 'Récitant: ${reciter.name}',
+          ),
+          IconButton(
             icon: const Icon(Icons.text_fields),
             onPressed: () {
               _showFontSizeDialog();
@@ -83,7 +90,6 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
       ),
       body: Column(
         children: [
-          // Sélecteur de sourate
           Container(
             padding: EdgeInsets.all(16.w),
             child: SurahSelector(
@@ -97,7 +103,6 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
             ),
           ),
 
-          // Contenu de la sourate
           Expanded(
             child: quranDataAsync.when(
               loading: () => const Center(
@@ -362,12 +367,21 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
       if (!ref.read(isSpeakingProvider)) break;
       ref.read(currentAyahProvider.notifier).state = ayah.number;
 
-      // Lire l'ayah et attendre un court délai
-      await ref.read(ttsServiceProvider).speak(ayah.text);
-      await ref.read(readingHistoryProvider.notifier).addToHistory('${surah.number}_${ayah.number}');
+      if (useRecitation) {
+        // play recorded if available, else fallback to TTS
+        final played = await ref.read(recitationServiceProvider).playAyah(surah.number, ayah.numberInSurah);
+        if (!played) {
+          await ref.read(ttsServiceProvider).speak(ayah.text);
+        } else {
+          await ref.read(recitationServiceProvider).playerStateStream
+              .firstWhere((s) => s.processingState == ProcessingState.completed);
+        }
+      } else {
+        await ref.read(ttsServiceProvider).speak(ayah.text);
+      }
 
-      // Pause légère entre les versets pour la respiration
-      await Future.delayed(const Duration(milliseconds: 400));
+      await ref.read(readingHistoryProvider.notifier).addToHistory('${surah.number}_${ayah.number}');
+      await Future.delayed(const Duration(milliseconds: 200));
     }
     
     ref.read(isSpeakingProvider.notifier).state = false;
@@ -430,6 +444,34 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
             child: const Text('Rechercher'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showReciterDialog() {
+    final service = ref.read(recitationServiceProvider);
+    showDialog(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Choisir un récitant'),
+        children: service.availableReciters.map((r) {
+          final isCurrent = r.id == service.currentReciter.id;
+          return SimpleDialogOption(
+            onPressed: () async {
+              await service.setReciter(r);
+              if (mounted) Navigator.pop(context);
+              setState(() {});
+            },
+            child: Row(
+              children: [
+                Icon(isCurrent ? Icons.radio_button_checked : Icons.radio_button_off,
+                    color: AppConstants.primaryColor),
+                const SizedBox(width: 8),
+                Text(r.name),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
