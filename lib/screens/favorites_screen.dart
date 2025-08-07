@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import '../utils/app_constants.dart';
 import '../utils/app_theme.dart';
 import '../providers/app_providers.dart';
@@ -56,18 +57,13 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
             onSelected: (value) {
               switch (value) {
                 case 'clear_favorites':
-                  _showClearDialog('favoris', () {
-                    // Effacer tous les favoris
-                    for (final favorite in favorites) {
-                      ref.read(favoritesProvider.notifier).removeFavorite(favorite);
-                    }
+                  _showClearDialog('favoris', () async {
+                    await ref.read(favoritesProvider.notifier).clearAll();
                   });
                   break;
                 case 'clear_history':
-                  _showClearDialog('historique', () {
-                    // Effacer tout l'historique
-                    // Effacer l'historique
-                    // ref.read(readingHistoryProvider.notifier).state = [];
+                  _showClearDialog('historique', () async {
+                    await ref.read(readingHistoryProvider.notifier).clearAll();
                   });
                   break;
                 case 'export':
@@ -193,14 +189,15 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                     onTap: () {
                       // Naviguer vers cet ayah
                       _navigateToAyah(item['surah'].number, item['ayah'].number);
+                      context.push('/surah/${item['surah'].number}');
                     },
                     onPlay: () {
                       ref.read(ttsServiceProvider).speak(item['ayah'].text);
                     },
-                    onFavorite: () {
+                    onFavorite: () async {
                       // Retirer des favoris
                       final ayahId = '${item['surah'].number}_${item['ayah'].number}';
-                      ref.read(favoritesProvider.notifier).removeFavorite(ayahId);
+                      await ref.read(favoritesProvider.notifier).removeFavorite(ayahId);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Retiré des favoris')),
                       );
@@ -304,17 +301,17 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                       color: AppConstants.primaryColor,
                     ),
                     IconButton(
-                      onPressed: () {
+                      onPressed: () async {
                         final ayahId = '${item['surah'].number}_${item['ayah'].number}';
                         final favorites = ref.read(favoritesProvider);
                         
                         if (favorites.contains(ayahId)) {
-                          ref.read(favoritesProvider.notifier).removeFavorite(ayahId);
+                          await ref.read(favoritesProvider.notifier).removeFavorite(ayahId);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Retiré des favoris')),
                           );
                         } else {
-                          ref.read(favoritesProvider.notifier).addFavorite(ayahId);
+                          await ref.read(favoritesProvider.notifier).addFavorite(ayahId);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Ajouté aux favoris')),
                           );
@@ -331,6 +328,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
                 ),
                 onTap: () {
                   _navigateToAyah(item['surah'].number, item['ayah'].number);
+                  context.push('/surah/${item['surah'].number}');
                 },
               ),
             );
@@ -414,10 +412,13 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
       final surah = quranData.getSurahByNumber(surahNumber);
       if (surah == null) continue;
       
-      final ayah = surah.ayahs.firstWhere(
-        (a) => a.number == ayahNumber,
-        orElse: () => null,
-      );
+      final ayah = () {
+        try {
+          return surah.ayahs.firstWhere((a) => a.number == ayahNumber);
+        } catch (_) {
+          return null;
+        }
+      }();
       
       if (ayah != null) {
         result.add({
@@ -438,7 +439,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
     // (Ceci nécessiterait une communication avec le widget parent pour changer d'onglet)
   }
 
-  void _showClearDialog(String type, VoidCallback onConfirm) {
+  void _showClearDialog(String type, Future<void> Function() onConfirm) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -450,9 +451,9 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
             child: const Text('Annuler'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              onConfirm();
+              await onConfirm();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('${type.capitalize()} effacés')),
               );
@@ -468,11 +469,22 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen>
   }
 
   void _exportData() {
-    // Implémenter l'export des données
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fonctionnalité d\'export à venir'),
-        backgroundColor: AppConstants.infoColor,
+    // Export simple: afficher un JSON minimal des favoris et historique
+    final favorites = ref.read(favoritesProvider);
+    final history = ref.read(readingHistoryProvider);
+    final json = '{\n  "favorites": ${favorites.toString()},\n  "history": ${history.toString()}\n}';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Export des données'),
+        content: SingleChildScrollView(child: Text(json)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fermer'),
+          ),
+        ],
       ),
     );
   }

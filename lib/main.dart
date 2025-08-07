@@ -33,6 +33,14 @@ class MyApp extends ConsumerWidget {
           return ReadScreen(surahNumber: surahNumber);
         },
       ),
+      GoRoute(
+        path: '/listen',
+        builder: (context, state) => const ListenScreen(),
+      ),
+      GoRoute(
+        path: '/favorites',
+        builder: (context, state) => const FavoritesScreen(),
+      ),
     ],
   );
 
@@ -84,13 +92,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,

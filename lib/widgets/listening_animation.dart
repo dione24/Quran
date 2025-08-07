@@ -47,8 +47,8 @@ class _ListeningAnimationState extends State<ListeningAnimation>
     );
 
     _pulseAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.2,
+      begin: 0.98,
+      end: 1.06,
     ).animate(CurvedAnimation(
       parent: _pulseController,
       curve: Curves.easeInOut,
@@ -110,23 +110,15 @@ class _ListeningAnimationState extends State<ListeningAnimation>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 200.w,
-      height: 200.h,
+    return SizedBox(
+      width: 180.w,
+      height: 180.h,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Cercles d'onde en arrière-plan
           if (widget.isListening) _buildWaveCircles(),
-          
-          // Cercle principal avec microphone
           _buildMainCircle(),
-          
-          // Indicateur de confiance
           if (widget.confidence > 0) _buildConfidenceIndicator(),
-          
-          // Particules flottantes
-          if (widget.isListening) _buildFloatingParticles(),
         ],
       ),
     );
@@ -136,29 +128,24 @@ class _ListeningAnimationState extends State<ListeningAnimation>
     return AnimatedBuilder(
       animation: _waveAnimation,
       builder: (context, child) {
-        return Stack(
-          alignment: Alignment.center,
-          children: List.generate(3, (index) {
-            final delay = index * 0.3;
-            final animationValue = (_waveAnimation.value - delay) % 1.0;
-            final opacity = (1.0 - animationValue).clamp(0.0, 1.0);
-            final scale = 0.5 + (animationValue * 1.5);
-            
-            return Transform.scale(
-              scale: scale,
-              child: Container(
-                width: 120.w,
-                height: 120.h,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppConstants.primaryColor.withOpacity(opacity * 0.3),
-                    width: 2,
-                  ),
-                ),
+        // Une seule onde subtile
+        final animationValue = (_waveAnimation.value) % 1.0;
+        final opacity = (1.0 - animationValue).clamp(0.0, 1.0);
+        final scale = 0.9 + (animationValue * 0.6);
+        
+        return Transform.scale(
+          scale: scale,
+          child: Container(
+            width: 120.w,
+            height: 120.h,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppConstants.primaryColor.withOpacity(opacity * 0.2),
+                width: 1.5,
               ),
-            );
-          }),
+            ),
+          ),
         );
       },
     );
@@ -180,25 +167,25 @@ class _ListeningAnimationState extends State<ListeningAnimation>
                 gradient: RadialGradient(
                   colors: [
                     widget.isListening 
-                        ? AppConstants.primaryColor.withOpacity(0.8)
-                        : AppConstants.primaryColor.withOpacity(0.3),
+                        ? AppConstants.primaryColor.withOpacity(0.6)
+                        : AppConstants.primaryColor.withOpacity(0.2),
                     widget.isListening 
-                        ? AppConstants.accentColor.withOpacity(0.9)
-                        : AppConstants.accentColor.withOpacity(0.5),
+                        ? AppConstants.accentColor.withOpacity(0.4)
+                        : AppConstants.accentColor.withOpacity(0.2),
                   ],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppConstants.primaryColor.withOpacity(0.4),
-                    blurRadius: widget.isListening ? 20 : 10,
-                    spreadRadius: widget.isListening ? 5 : 2,
+                    color: AppConstants.primaryColor.withOpacity(0.15),
+                    blurRadius: widget.isListening ? 10 : 6,
+                    spreadRadius: widget.isListening ? 2 : 1,
                   ),
                 ],
               ),
               child: Center(
                 child: Icon(
                   widget.isListening ? Icons.mic : Icons.mic_none,
-                  size: 48.sp,
+                  size: 40.sp,
                   color: Colors.white,
                 ),
               ),
@@ -219,24 +206,17 @@ class _ListeningAnimationState extends State<ListeningAnimation>
     return Positioned(
       bottom: 0,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
         decoration: BoxDecoration(
           color: confidenceColor.withOpacity(0.9),
-          borderRadius: BorderRadius.circular(20.r),
-          boxShadow: [
-            BoxShadow(
-              color: confidenceColor.withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(16.r),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               Icons.signal_cellular_alt,
-              size: 14.sp,
+              size: 12.sp,
               color: Colors.white,
             ),
             SizedBox(width: 4.w),
@@ -244,121 +224,13 @@ class _ListeningAnimationState extends State<ListeningAnimation>
               '${(widget.confidence * 100).toInt()}%',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.bold,
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  Widget _buildFloatingParticles() {
-    return AnimatedBuilder(
-      animation: _waveAnimation,
-      builder: (context, child) {
-        return Stack(
-          children: List.generate(8, (index) {
-            final angle = (index * math.pi * 2 / 8) + _waveAnimation.value;
-            final radius = 80.w + (math.sin(_waveAnimation.value * 2) * 20.w);
-            final x = math.cos(angle) * radius;
-            final y = math.sin(angle) * radius;
-            
-            return Transform.translate(
-              offset: Offset(x, y),
-              child: Container(
-                width: 4.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppConstants.secondaryColor.withOpacity(0.6),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppConstants.secondaryColor.withOpacity(0.3),
-                      blurRadius: 4,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-        );
-      },
-    );
-  }
-}
-
-class WaveformPainter extends CustomPainter {
-  final double animationValue;
-  final List<double> waveData;
-  final Color color;
-
-  WaveformPainter({
-    required this.animationValue,
-    required this.waveData,
-    required this.color,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke;
-
-    final path = Path();
-    final centerY = size.height / 2;
-    final stepWidth = size.width / (waveData.length - 1);
-
-    for (int i = 0; i < waveData.length; i++) {
-      final x = i * stepWidth;
-      final y = centerY + (waveData[i] * centerY * animationValue);
-      
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
-class AudioWaveform extends StatelessWidget {
-  final bool isActive;
-  final double amplitude;
-
-  const AudioWaveform({
-    Key? key,
-    required this.isActive,
-    this.amplitude = 1.0,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 200.w,
-      height: 60.h,
-      child: CustomPaint(
-        painter: WaveformPainter(
-          animationValue: isActive ? amplitude : 0.0,
-          waveData: _generateWaveData(),
-          color: AppConstants.primaryColor,
-        ),
-      ),
-    );
-  }
-
-  List<double> _generateWaveData() {
-    final random = math.Random();
-    return List.generate(50, (index) {
-      return (random.nextDouble() - 0.5) * 2;
-    });
   }
 }

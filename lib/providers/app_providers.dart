@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/stt_service.dart';
 import '../services/tts_service.dart';
 import '../services/audio_matcher.dart';
+import '../services/recitation_service.dart';
 import '../data/quran_db.dart';
 import '../models/quran_data.dart';
 // Services avancés (stubs pour compilation)
@@ -14,6 +15,7 @@ import '../services/prayer_times_service.dart';
 // Services principaux
 final sttServiceProvider = Provider<STTService>((ref) => STTService());
 final ttsServiceProvider = Provider<TTSService>((ref) => TTSService());
+final recitationServiceProvider = Provider<RecitationService>((ref) => RecitationService());
 final audioMatcherProvider = Provider<AudioMatcher>((ref) => AudioMatcher());
 final quranDBProvider = Provider<QuranDB>((ref) => QuranDB());
 // Services avancés (stubs pour compilation)
@@ -54,34 +56,86 @@ final searchResultsProvider = FutureProvider<List<dynamic>>((ref) async {
   return [];
 });
 
-// Favoris et historique
+// Favoris et historique persistants
 final favoritesProvider = StateNotifierProvider<FavoritesNotifier, List<String>>((ref) {
-  return FavoritesNotifier();
+  return FavoritesNotifier(ref.read);
 });
 
 final readingHistoryProvider = StateNotifierProvider<ReadingHistoryNotifier, List<String>>((ref) {
-  return ReadingHistoryNotifier();
+  return ReadingHistoryNotifier(ref.read);
 });
 
 class FavoritesNotifier extends StateNotifier<List<String>> {
-  FavoritesNotifier() : super([]);
+  final Reader read;
+  FavoritesNotifier(this.read) : super([]) {
+    _load();
+  }
 
-  void addFavorite(String ayahId) {
+  Future<void> _load() async {
+    final db = read(quranDBProvider);
+    state = await db.getFavorites();
+  }
+
+  Future<void> addFavorite(String ayahId) async {
+    final parts = ayahId.split('_');
+    if (parts.length != 2) return;
+    final surah = int.tryParse(parts[0]);
+    final ayah = int.tryParse(parts[1]);
+    if (surah == null || ayah == null) return;
+
+    final db = read(quranDBProvider);
+    await db.addToFavorites(surah, ayah);
     if (!state.contains(ayahId)) {
-      state = [...state, ayahId];
+      state = [ayahId, ...state];
     }
   }
 
-  void removeFavorite(String ayahId) {
+  Future<void> removeFavorite(String ayahId) async {
+    final parts = ayahId.split('_');
+    if (parts.length != 2) return;
+    final surah = int.tryParse(parts[0]);
+    final ayah = int.tryParse(parts[1]);
+    if (surah == null || ayah == null) return;
+
+    final db = read(quranDBProvider);
+    await db.removeFromFavorites(surah, ayah);
     state = state.where((id) => id != ayahId).toList();
+  }
+
+  Future<void> clearAll() async {
+    final db = read(quranDBProvider);
+    await db.clearFavorites();
+    state = [];
   }
 }
 
 class ReadingHistoryNotifier extends StateNotifier<List<String>> {
-  ReadingHistoryNotifier() : super([]);
+  final Reader read;
+  ReadingHistoryNotifier(this.read) : super([]) {
+    _load();
+  }
 
-  void addToHistory(String ayahId) {
-    state = [ayahId, ...state.where((id) => id != ayahId).take(99)].toList();
+  Future<void> _load() async {
+    final db = read(quranDBProvider);
+    state = await db.getReadingHistory(limit: 50);
+  }
+
+  Future<void> addToHistory(String ayahId) async {
+    final parts = ayahId.split('_');
+    if (parts.length != 2) return;
+    final surah = int.tryParse(parts[0]);
+    final ayah = int.tryParse(parts[1]);
+    if (surah == null || ayah == null) return;
+
+    final db = read(quranDBProvider);
+    await db.addToReadingHistory(surah, ayah);
+    state = [ayahId, ...state.where((id) => id != ayahId)].take(50).toList();
+  }
+
+  Future<void> clearAll() async {
+    final db = read(quranDBProvider);
+    await db.clearReadingHistory();
+    state = [];
   }
 }
 

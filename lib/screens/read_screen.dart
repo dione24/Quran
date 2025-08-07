@@ -7,6 +7,7 @@ import '../providers/app_providers.dart';
 import '../widgets/surah_selector.dart';
 import '../widgets/ayah_tile.dart';
 import '../models/surah.dart';
+import '../services/recitation_service.dart';
 
 class ReadScreen extends ConsumerStatefulWidget {
   final int? surahNumber;
@@ -21,6 +22,7 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
   int? selectedSurahNumber;
   ScrollController _scrollController = ScrollController();
   bool showTranslation = true;
+  bool useRecitation = true; // prefer recorded recitation when available
 
   @override
   void initState() {
@@ -39,6 +41,7 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
     final quranDataAsync = ref.watch(quranDataProvider);
     final currentAyah = ref.watch(currentAyahProvider);
     final isSpeaking = ref.watch(isSpeakingProvider);
+    final reciter = ref.watch(recitationServiceProvider).currentReciter;
 
     return Scaffold(
       appBar: AppBar(
@@ -54,6 +57,20 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
               });
             },
             tooltip: 'Afficher/Masquer la traduction',
+          ),
+          IconButton(
+            icon: Icon(useRecitation ? Icons.record_voice_over : Icons.spatial_audio_off),
+            onPressed: () {
+              setState(() {
+                useRecitation = !useRecitation;
+              });
+            },
+            tooltip: useRecitation ? 'Utiliser synthèse vocale' : 'Utiliser récitation enregistrée',
+          ),
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: _showReciterDialog,
+            tooltip: 'Récitant: ${reciter.name}',
           ),
           IconButton(
             icon: const Icon(Icons.text_fields),
@@ -73,21 +90,19 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
       ),
       body: Column(
         children: [
-          // Sélecteur de sourate
           Container(
             padding: EdgeInsets.all(16.w),
             child: SurahSelector(
               selectedSurahNumber: selectedSurahNumber,
               onSurahSelected: (surahNumber) {
                 setState(() {
-                  selectedSurahNumber = surahNumber;
+                  selectedSurahNumber = surahNumber == 0 ? null : surahNumber;
                 });
-                ref.read(currentSurahProvider.notifier).state = surahNumber;
+                ref.read(currentSurahProvider.notifier).state = surahNumber == 0 ? null : surahNumber;
               },
             ),
           ),
 
-          // Contenu de la sourate
           Expanded(
             child: quranDataAsync.when(
               loading: () => const Center(
@@ -280,14 +295,19 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
                 showTranslation: showTranslation,
                 isHighlighted: isCurrentAyah,
                 isPlaying: isSpeaking && isCurrentAyah,
-                onTap: () {
+                onTap: () async {
                   ref.read(currentAyahProvider.notifier).state = ayah.number;
+                  await ref.read(readingHistoryProvider.notifier).addToHistory('${surah.number}_${ayah.number}');
                 },
-                onPlay: () {
-                  _playAyah(ayah);
+                onPlay: () async {
+                  if (useRecitation) {
+                    await ref.read(recitationServiceProvider).playAyahAndAwait(surah.number, ayah.numberInSurah);
+                  } else {
+                    await _playAyah(ayah, surah.number);
+                  }
                 },
-                onFavorite: () {
-                  _toggleFavorite(surah.number, ayah.number);
+                onFavorite: () async {
+                  await _toggleFavorite(surah.number, ayah.number);
                 },
               );
             },
@@ -297,22 +317,25 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
     );
   }
 
-  void _playAyah(ayah) {
+  Future<void> _playAyah(ayah, [int? surahNumber]) async {
     ref.read(currentAyahProvider.notifier).state = ayah.number;
-    ref.read(ttsServiceProvider).speak(ayah.text);
+    await ref.read(ttsServiceProvider).speak(ayah.text);
+    if (surahNumber != null) {
+      await ref.read(readingHistoryProvider.notifier).addToHistory('${surahNumber}_${ayah.number}');
+    }
   }
 
-  void _toggleFavorite(int surahNumber, int ayahNumber) {
+  Future<void> _toggleFavorite(int surahNumber, int ayahNumber) async {
     final favorites = ref.read(favoritesProvider.notifier);
     final ayahId = '${surahNumber}_$ayahNumber';
     
     if (ref.read(favoritesProvider).contains(ayahId)) {
-      favorites.removeFavorite(ayahId);
+      await favorites.removeFavorite(ayahId);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Retiré des favoris')),
       );
     } else {
-      favorites.addFavorite(ayahId);
+      await favorites.addFavorite(ayahId);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Ajouté aux favoris')),
       );
@@ -333,7 +356,7 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
     }
   }
 
-  void _startContinuousReading() async {
+  Future<void> _startContinuousReading() async {
     if (selectedSurahNumber == null) return;
     
     final quranData = await ref.read(quranDataProvider.future);
@@ -342,12 +365,23 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
 
     for (final ayah in surah.ayahs) {
       if (!ref.read(isSpeakingProvider)) break;
-      
       ref.read(currentAyahProvider.notifier).state = ayah.number;
-      ref.read(ttsServiceProvider).speak(ayah.text);
-      
-      // Attendre un peu entre les ayahs
-      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (useRecitation) {
+        // play recorded if available, else fallback to TTS
+        final played = await ref.read(recitationServiceProvider).playAyah(surah.number, ayah.numberInSurah);
+        if (!played) {
+          await ref.read(ttsServiceProvider).speak(ayah.text);
+        } else {
+          await ref.read(recitationServiceProvider).playerStateStream
+              .firstWhere((s) => s.processingState == ProcessingState.completed);
+        }
+      } else {
+        await ref.read(ttsServiceProvider).speak(ayah.text);
+      }
+
+      await ref.read(readingHistoryProvider.notifier).addToHistory('${surah.number}_${ayah.number}');
+      await Future.delayed(const Duration(milliseconds: 200));
     }
     
     ref.read(isSpeakingProvider.notifier).state = false;
@@ -410,6 +444,34 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
             child: const Text('Rechercher'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showReciterDialog() {
+    final service = ref.read(recitationServiceProvider);
+    showDialog(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Choisir un récitant'),
+        children: service.availableReciters.map((r) {
+          final isCurrent = r.id == service.currentReciter.id;
+          return SimpleDialogOption(
+            onPressed: () async {
+              await service.setReciter(r);
+              if (mounted) Navigator.pop(context);
+              setState(() {});
+            },
+            child: Row(
+              children: [
+                Icon(isCurrent ? Icons.radio_button_checked : Icons.radio_button_off,
+                    color: AppConstants.primaryColor),
+                const SizedBox(width: 8),
+                Text(r.name),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }

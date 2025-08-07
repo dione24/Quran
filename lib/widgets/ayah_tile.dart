@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/ayah.dart';
 import '../utils/app_constants.dart';
 import '../utils/app_theme.dart';
@@ -449,13 +450,7 @@ class _AyahTileState extends State<AyahTile>
   }
 
   void _shareAyah() {
-    // Implémenter le partage
-    // Share.share(...)
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fonctionnalité de partage à venir'),
-        backgroundColor: AppConstants.infoColor,
-      ),
-    );
+    final text = '${widget.ayah.text}\n\n${widget.ayah.translation ?? _getDefaultTranslation()}\n\nSourate ${widget.surahNumber} - Verset ${widget.ayah.numberInSurah}';
+    Share.share(text, subject: 'Verset du Coran');
   }
 }

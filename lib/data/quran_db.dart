@@ -95,6 +95,8 @@ class QuranDB {
     // Index pour améliorer les performances
     await db.execute('CREATE INDEX idx_ayahs_surah ON $_ayahsTable (surah_number)');
     await db.execute('CREATE INDEX idx_ayahs_text ON $_ayahsTable (text)');
+    await db.execute('CREATE INDEX idx_fav_pair ON $_favoritesTable (surah_number, ayah_number)');
+    await db.execute('CREATE INDEX idx_hist_read_at ON $_readingHistoryTable (read_at DESC)');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -119,16 +121,62 @@ class QuranDB {
     await _loadQuranDataFromAssets();
   }
 
-  /// Charge les données du Coran depuis les assets
+  /// Charge les données du Coran depuis les assets (offline-first)
   Future<void> _loadQuranDataFromAssets() async {
     try {
-      // Essayer de charger depuis les assets
-      final String jsonString = await rootBundle.loadString('assets/quran/quran.json');
-      final Map<String, dynamic> jsonData = json.decode(jsonString);
-      
-      final quranData = QuranData.fromJson(jsonData);
-      await _saveQuranDataToDatabase(quranData);
-      
+      // 1) Essayer un fichier complet (recommandé pour le mode hors-ligne)
+      try {
+        final String jsonString = await rootBundle.loadString('assets/quran/quran_full.json');
+        final Map<String, dynamic> jsonData = json.decode(jsonString);
+        final quranData = QuranData.fromJson(jsonData);
+        await _saveQuranDataToDatabase(quranData);
+        return;
+      } catch (_) {}
+
+      // 2) Essayer le fichier court existant (peut ne pas être complet)
+      try {
+        final String jsonString = await rootBundle.loadString('assets/quran/quran.json');
+        final Map<String, dynamic> jsonData = json.decode(jsonString);
+        final quranData = QuranData.fromJson(jsonData);
+        await _saveQuranDataToDatabase(quranData);
+        return;
+      } catch (_) {}
+
+      // 3) Essayer des fichiers par sourate (surah_1.json, s001.json, 1.json)
+      final List<Surah> surahs = [];
+      for (int i = 1; i <= 114; i++) {
+        String? content;
+        final candidates = [
+          'assets/quran/surah_$i.json',
+          'assets/quran/surah_${i.toString().padLeft(3, '0')}.json',
+          'assets/quran/s${i.toString().padLeft(3, '0')}.json',
+          'assets/quran/$i.json',
+        ];
+        for (final path in candidates) {
+          try {
+            content = await rootBundle.loadString(path);
+            break;
+          } catch (_) {}
+        }
+        if (content != null) {
+          final Map<String, dynamic> data = json.decode(content);
+          // Supporter soit un objet de sourate, soit un wrapper { surahs: [ ... ] }
+          if (data.containsKey('number') && data.containsKey('ayahs')) {
+            surahs.add(Surah.fromJson(data));
+          } else if (data.containsKey('surahs')) {
+            surahs.addAll((data['surahs'] as List)
+                .map((e) => Surah.fromJson(e as Map<String, dynamic>))
+                .toList());
+          }
+        }
+      }
+      if (surahs.isNotEmpty) {
+        final quranData = QuranData(surahs: surahs);
+        await _saveQuranDataToDatabase(quranData);
+        return;
+      }
+
+      throw Exception('Aucune donnée du Coran trouvée dans les assets');
     } catch (e) {
       print('Erreur lors du chargement des données: $e');
       // En cas d'erreur, créer des données de base
@@ -335,6 +383,25 @@ class QuranDB {
     return result.isNotEmpty;
   }
 
+  /// Lister les favoris en identifiants "surah_ayah"
+  Future<List<String>> getFavorites() async {
+    final db = await database;
+    final rows = await db.query(
+      _favoritesTable,
+      orderBy: 'created_at DESC',
+    );
+    return rows
+        .map((r) => '${r['surah_number']}_${r['ayah_number']}')
+        .cast<String>()
+        .toList();
+  }
+
+  /// Effacer tous les favoris
+  Future<void> clearFavorites() async {
+    final db = await database;
+    await db.delete(_favoritesTable);
+  }
+
   /// Ajouter à l'historique de lecture
   Future<void> addToReadingHistory(int surahNumber, int ayahNumber) async {
     final db = await database;
@@ -343,6 +410,26 @@ class QuranDB {
       'ayah_number': ayahNumber,
       'read_at': DateTime.now().toIso8601String(),
     });
+  }
+
+  /// Récupérer l'historique (limité à 50 derniers) en identifiants "surah_ayah"
+  Future<List<String>> getReadingHistory({int limit = 50}) async {
+    final db = await database;
+    final rows = await db.query(
+      _readingHistoryTable,
+      orderBy: 'read_at DESC',
+      limit: limit,
+    );
+    return rows
+        .map((r) => '${r['surah_number']}_${r['ayah_number']}')
+        .cast<String>()
+        .toList();
+  }
+
+  /// Effacer l'historique
+  Future<void> clearReadingHistory() async {
+    final db = await database;
+    await db.delete(_readingHistoryTable);
   }
 
   /// Fermer la base de données

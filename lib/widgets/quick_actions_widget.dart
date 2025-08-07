@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import '../utils/app_constants.dart';
 
 class QuickActionsWidget extends ConsumerWidget {
@@ -30,7 +31,7 @@ class QuickActionsWidget extends ConsumerWidget {
                   label: 'Lire\nle Coran',
                   color: AppConstants.primaryColor,
                   onTap: () {
-                    // Naviguer vers l'écran de lecture
+                    context.push('/surah/1');
                   },
                 ),
                 _buildQuickAction(
@@ -39,7 +40,7 @@ class QuickActionsWidget extends ConsumerWidget {
                   label: 'Écouter &\nReconnaître',
                   color: AppConstants.accentColor,
                   onTap: () {
-                    // Naviguer vers l'écran d'écoute
+                    context.push('/listen');
                   },
                 ),
                 _buildQuickAction(
@@ -48,7 +49,7 @@ class QuickActionsWidget extends ConsumerWidget {
                   label: 'Mes\nFavoris',
                   color: AppConstants.favoriteColor,
                   onTap: () {
-                    // Naviguer vers les favoris
+                    context.push('/favorites');
                   },
                 ),
                 _buildQuickAction(
@@ -57,13 +58,29 @@ class QuickActionsWidget extends ConsumerWidget {
                   label: 'Recherche\nAvancée',
                   color: AppConstants.infoColor,
                   onTap: () {
-                    // Ouvrir la recherche
+                    showSearchDialog(context);
                   },
                 ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void showSearchDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rechercher'),
+        content: const Text('La recherche avancée arrive bientôt.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fermer'),
+          ),
+        ],
       ),
     );
   }
