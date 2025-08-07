@@ -21,6 +21,7 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
   int? selectedSurahNumber;
   ScrollController _scrollController = ScrollController();
   bool showTranslation = true;
+  bool useRecitation = true; // prefer recorded recitation when available
 
   @override
   void initState() {
@@ -54,6 +55,15 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
               });
             },
             tooltip: 'Afficher/Masquer la traduction',
+          ),
+          IconButton(
+            icon: Icon(useRecitation ? Icons.record_voice_over : Icons.spatial_audio_off),
+            onPressed: () {
+              setState(() {
+                useRecitation = !useRecitation;
+              });
+            },
+            tooltip: useRecitation ? 'Utiliser synthèse vocale' : 'Utiliser récitation enregistrée',
           ),
           IconButton(
             icon: const Icon(Icons.text_fields),
@@ -285,7 +295,11 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
                   await ref.read(readingHistoryProvider.notifier).addToHistory('${surah.number}_${ayah.number}');
                 },
                 onPlay: () async {
-                  await _playAyah(ayah, surah.number);
+                  if (useRecitation) {
+                    await ref.read(recitationServiceProvider).playAyahAndAwait(surah.number, ayah.numberInSurah);
+                  } else {
+                    await _playAyah(ayah, surah.number);
+                  }
                 },
                 onFavorite: () async {
                   await _toggleFavorite(surah.number, ayah.number);

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/stt_service.dart';
 import '../services/tts_service.dart';
 import '../services/audio_matcher.dart';
+import '../services/recitation_service.dart';
 import '../data/quran_db.dart';
 import '../models/quran_data.dart';
 // Services avancés (stubs pour compilation)
@@ -14,6 +15,7 @@ import '../services/prayer_times_service.dart';
 // Services principaux
 final sttServiceProvider = Provider<STTService>((ref) => STTService());
 final ttsServiceProvider = Provider<TTSService>((ref) => TTSService());
+final recitationServiceProvider = Provider<RecitationService>((ref) => RecitationService());
 final audioMatcherProvider = Provider<AudioMatcher>((ref) => AudioMatcher());
 final quranDBProvider = Provider<QuranDB>((ref) => QuranDB());
 // Services avancés (stubs pour compilation)
