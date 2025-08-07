@@ -33,6 +33,14 @@ class MyApp extends ConsumerWidget {
           return ReadScreen(surahNumber: surahNumber);
         },
       ),
+      GoRoute(
+        path: '/listen',
+        builder: (context, state) => const ListenScreen(),
+      ),
+      GoRoute(
+        path: '/favorites',
+        builder: (context, state) => const FavoritesScreen(),
+      ),
     ],
   );
 

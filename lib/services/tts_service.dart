@@ -26,6 +26,13 @@ class TTSService {
       await _flutterTts.setVolume(0.8);
       await _flutterTts.setPitch(1.0);
 
+      // Attendre la fin de lecture pour compléter les Futures speak()
+      try {
+        await _flutterTts.awaitSpeakCompletion(true);
+      } catch (_) {
+        // Certaines plateformes/versions peuvent ne pas supporter cette API
+      }
+
       // Configuration spécifique à la plateforme
       if (Platform.isAndroid) {
         await _flutterTts.setEngine('com.google.android.tts');

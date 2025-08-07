@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import '../utils/app_constants.dart';
 import '../utils/app_theme.dart';
 import '../providers/app_providers.dart';
@@ -468,8 +469,8 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
       ref.read(currentSurahProvider.notifier).state = result.matchedSurah!.number;
       ref.read(currentAyahProvider.notifier).state = result.matchedAyah!.number;
       
-      // Changer d'onglet vers la lecture
-      // (Ceci nécessiterait une communication avec le widget parent)
+      // Ouvrir la page de lecture ciblée
+      context.push('/surah/${result.matchedSurah!.number}');
     }
   }
 

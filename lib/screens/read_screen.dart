@@ -80,9 +80,9 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
               selectedSurahNumber: selectedSurahNumber,
               onSurahSelected: (surahNumber) {
                 setState(() {
-                  selectedSurahNumber = surahNumber;
+                  selectedSurahNumber = surahNumber == 0 ? null : surahNumber;
                 });
-                ref.read(currentSurahProvider.notifier).state = surahNumber;
+                ref.read(currentSurahProvider.notifier).state = surahNumber == 0 ? null : surahNumber;
               },
             ),
           ),
@@ -280,14 +280,15 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
                 showTranslation: showTranslation,
                 isHighlighted: isCurrentAyah,
                 isPlaying: isSpeaking && isCurrentAyah,
-                onTap: () {
+                onTap: () async {
                   ref.read(currentAyahProvider.notifier).state = ayah.number;
+                  await ref.read(readingHistoryProvider.notifier).addToHistory('${surah.number}_${ayah.number}');
                 },
-                onPlay: () {
-                  _playAyah(ayah);
+                onPlay: () async {
+                  await _playAyah(ayah, surah.number);
                 },
-                onFavorite: () {
-                  _toggleFavorite(surah.number, ayah.number);
+                onFavorite: () async {
+                  await _toggleFavorite(surah.number, ayah.number);
                 },
               );
             },
@@ -297,22 +298,25 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
     );
   }
 
-  void _playAyah(ayah) {
+  Future<void> _playAyah(ayah, [int? surahNumber]) async {
     ref.read(currentAyahProvider.notifier).state = ayah.number;
-    ref.read(ttsServiceProvider).speak(ayah.text);
+    await ref.read(ttsServiceProvider).speak(ayah.text);
+    if (surahNumber != null) {
+      await ref.read(readingHistoryProvider.notifier).addToHistory('${surahNumber}_${ayah.number}');
+    }
   }
 
-  void _toggleFavorite(int surahNumber, int ayahNumber) {
+  Future<void> _toggleFavorite(int surahNumber, int ayahNumber) async {
     final favorites = ref.read(favoritesProvider.notifier);
     final ayahId = '${surahNumber}_$ayahNumber';
     
     if (ref.read(favoritesProvider).contains(ayahId)) {
-      favorites.removeFavorite(ayahId);
+      await favorites.removeFavorite(ayahId);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Retiré des favoris')),
       );
     } else {
-      favorites.addFavorite(ayahId);
+      await favorites.addFavorite(ayahId);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Ajouté aux favoris')),
       );
@@ -333,7 +337,7 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
     }
   }
 
-  void _startContinuousReading() async {
+  Future<void> _startContinuousReading() async {
     if (selectedSurahNumber == null) return;
     
     final quranData = await ref.read(quranDataProvider.future);
@@ -342,12 +346,14 @@ class _ReadScreenState extends ConsumerState<ReadScreen> {
 
     for (final ayah in surah.ayahs) {
       if (!ref.read(isSpeakingProvider)) break;
-      
       ref.read(currentAyahProvider.notifier).state = ayah.number;
-      ref.read(ttsServiceProvider).speak(ayah.text);
-      
-      // Attendre un peu entre les ayahs
-      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Lire l'ayah et attendre un court délai
+      await ref.read(ttsServiceProvider).speak(ayah.text);
+      await ref.read(readingHistoryProvider.notifier).addToHistory('${surah.number}_${ayah.number}');
+
+      // Pause légère entre les versets pour la respiration
+      await Future.delayed(const Duration(milliseconds: 400));
     }
     
     ref.read(isSpeakingProvider.notifier).state = false;

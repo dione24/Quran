@@ -95,6 +95,8 @@ class QuranDB {
     // Index pour améliorer les performances
     await db.execute('CREATE INDEX idx_ayahs_surah ON $_ayahsTable (surah_number)');
     await db.execute('CREATE INDEX idx_ayahs_text ON $_ayahsTable (text)');
+    await db.execute('CREATE INDEX idx_fav_pair ON $_favoritesTable (surah_number, ayah_number)');
+    await db.execute('CREATE INDEX idx_hist_read_at ON $_readingHistoryTable (read_at DESC)');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -335,6 +337,25 @@ class QuranDB {
     return result.isNotEmpty;
   }
 
+  /// Lister les favoris en identifiants "surah_ayah"
+  Future<List<String>> getFavorites() async {
+    final db = await database;
+    final rows = await db.query(
+      _favoritesTable,
+      orderBy: 'created_at DESC',
+    );
+    return rows
+        .map((r) => '${r['surah_number']}_${r['ayah_number']}')
+        .cast<String>()
+        .toList();
+  }
+
+  /// Effacer tous les favoris
+  Future<void> clearFavorites() async {
+    final db = await database;
+    await db.delete(_favoritesTable);
+  }
+
   /// Ajouter à l'historique de lecture
   Future<void> addToReadingHistory(int surahNumber, int ayahNumber) async {
     final db = await database;
@@ -343,6 +364,26 @@ class QuranDB {
       'ayah_number': ayahNumber,
       'read_at': DateTime.now().toIso8601String(),
     });
+  }
+
+  /// Récupérer l'historique (limité à 50 derniers) en identifiants "surah_ayah"
+  Future<List<String>> getReadingHistory({int limit = 50}) async {
+    final db = await database;
+    final rows = await db.query(
+      _readingHistoryTable,
+      orderBy: 'read_at DESC',
+      limit: limit,
+    );
+    return rows
+        .map((r) => '${r['surah_number']}_${r['ayah_number']}')
+        .cast<String>()
+        .toList();
+  }
+
+  /// Effacer l'historique
+  Future<void> clearReadingHistory() async {
+    final db = await database;
+    await db.delete(_readingHistoryTable);
   }
 
   /// Fermer la base de données
