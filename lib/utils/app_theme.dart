@@ -12,8 +12,8 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: AppConstants.backgroundColor,
       fontFamily: 'Tajawal',
+      visualDensity: VisualDensity.adaptivePlatformDensity,
       
-      // AppBar Theme
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -30,7 +30,6 @@ class AppTheme {
         ),
       ),
 
-      // Text Themes
       textTheme: TextTheme(
         displayLarge: TextStyle(
           fontSize: 32.sp,
@@ -75,23 +74,21 @@ class AppTheme {
         ),
       ),
 
-      // Card Theme
       cardTheme: CardTheme(
         color: Colors.white,
-        elevation: 4,
-        shadowColor: Colors.black.withOpacity(0.1),
+        elevation: 1,
+        shadowColor: Colors.black.withOpacity(0.05),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.r),
         ),
       ),
 
-      // Button Themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppConstants.primaryColor,
           foregroundColor: Colors.white,
-          elevation: 2,
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+          elevation: 0,
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.r),
           ),
@@ -106,7 +103,7 @@ class AppTheme {
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppConstants.primaryColor,
         foregroundColor: Colors.white,
-        elevation: 6,
+        elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.r),
         ),
@@ -123,8 +120,8 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: AppConstants.darkBackgroundColor,
       fontFamily: 'Tajawal',
+      visualDensity: VisualDensity.adaptivePlatformDensity,
       
-      // AppBar Theme
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -141,7 +138,6 @@ class AppTheme {
         ),
       ),
 
-      // Text Themes
       textTheme: TextTheme(
         displayLarge: TextStyle(
           fontSize: 32.sp,
@@ -163,11 +159,10 @@ class AppTheme {
         ),
       ),
 
-      // Card Theme
       cardTheme: CardTheme(
         color: AppConstants.darkCardColor,
-        elevation: 4,
-        shadowColor: Colors.black.withOpacity(0.3),
+        elevation: 1,
+        shadowColor: Colors.black.withOpacity(0.2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.r),
         ),
@@ -175,7 +170,6 @@ class AppTheme {
     );
   }
 
-  // Styles spéciaux pour le texte arabe
   static TextStyle arabicTextStyle({
     double? fontSize,
     FontWeight? fontWeight,
@@ -188,7 +182,6 @@ class AppTheme {
       fontWeight: fontWeight ?? FontWeight.normal,
       color: color ?? AppConstants.textColor,
       height: height ?? 2.0,
-      // textDirection: TextDirection.rtl,
     );
   }
 }
