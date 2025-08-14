@@ -4,7 +4,7 @@
 [![Dart](https://img.shields.io/badge/Dart-3.5.4-blue.svg)](https://dart.dev/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Une application Flutter complète pour la lecture et l'écoute intelligente du Saint Coran avec reconnaissance vocale en arabe.
+Une application Flutter complète pour la lecture et l'écoute intelligente du Saint Coran avec reconnaissance vocale en arabe et localisation de mosquées.
 
 ## ✨ Fonctionnalités
 
@@ -21,9 +21,16 @@ Une application Flutter complète pour la lecture et l'écoute intelligente du S
 - Lecture vocale Text-to-Speech en arabe
 - Mode lecture continue
 
+### 🕌 **Localisation de Mosquées**
+- Recherche de mosquées à proximité
+- Cartes interactives avec Google Maps
+- Informations détaillées sur chaque mosquée
+- Navigation GPS vers les mosquées
+- Horaires de prière localisés
+
 ### 🎨 **Interface Utilisateur**
 - Design islamique respectueux (vert émeraude, doré)
-- 4 écrans principaux avec navigation fluide
+- 5 écrans principaux avec navigation fluide
 - Animations et transitions douces
 - Mode sombre et clair
 - Interface responsive
@@ -32,7 +39,7 @@ Une application Flutter complète pour la lecture et l'écoute intelligente du S
 - Base de données SQLite embarquée
 - Système de favoris et historique de lecture
 - Stockage local pour fonctionnement hors-ligne
-- Modèles JSON pour Ayah, Surah, QuranData
+- Modèles JSON pour Ayah, Surah, QuranData, Mosque
 
 ## 🏗️ Architecture
 
@@ -43,6 +50,7 @@ lib/
 ├── models/
 │   ├── ayah.dart              # Modèle de verset
 │   ├── surah.dart             # Modèle de sourate
+│   ├── mosque.dart            # Modèle de mosquée
 │   └── quran_data.dart        # Données complètes du Coran
 ├── providers/
 │   └── app_providers.dart     # Gestion d'état Riverpod
@@ -50,16 +58,20 @@ lib/
 │   ├── home_screen.dart       # Écran d'accueil
 │   ├── read_screen.dart       # Écran de lecture
 │   ├── listen_screen.dart     # Écran d'écoute/STT
+│   ├── prayers_screen.dart    # Écran des prières
+│   ├── mosque_finder_screen.dart # Écran de recherche de mosquées
 │   └── favorites_screen.dart  # Écran des favoris
 ├── services/
 │   ├── stt_service.dart       # Reconnaissance vocale
 │   ├── tts_service.dart       # Synthèse vocale
-│   └── audio_matcher.dart     # Correspondance IA
+│   ├── audio_matcher.dart     # Correspondance IA
+│   └── mosque_finder_service.dart # Service de recherche de mosquées
 ├── utils/
 │   ├── app_constants.dart     # Constantes
 │   └── app_theme.dart         # Thèmes
 ├── widgets/
-│   └── ...                    # Composants réutilisables
+│   ├── mosque_card.dart       # Composant carte de mosquée
+│   └── ...                    # Autres composants réutilisables
 └── main.dart                  # Point d'entrée
 ```
 
@@ -70,6 +82,7 @@ lib/
 - Dart 3.5.4+
 - Android SDK 33+
 - Java 17 (recommandé)
+- Clé API Google Maps
 
 ### Étapes
 
@@ -85,12 +98,17 @@ lib/
    flutter packages pub run build_runner build
    ```
 
-3. **Lancer l'application**
+3. **Configurer Google Maps**
+   - Obtenir une clé API Google Maps
+   - Ajouter la clé dans `android/app/src/main/AndroidManifest.xml`
+   - Ajouter la clé dans `ios/Runner/AppDelegate.swift`
+
+4. **Lancer l'application**
    ```bash
    flutter run
    ```
 
-4. **Construire l'APK de release**
+5. **Construire l'APK de release**
    ```bash
    flutter build apk --release
    ```
@@ -117,6 +135,19 @@ lib/
 - Affichage des correspondances trouvées
 - Navigation vers versets détectés
 
+### 🕌 Mosquées
+- Carte interactive avec localisation
+- Recherche de mosquées par nom ou adresse
+- Informations détaillées (adresse, téléphone, horaires)
+- Navigation GPS vers la mosquée sélectionnée
+- Liste des mosquées à proximité
+
+### 🕊️ Prières
+- Horaires de prière basés sur la localisation
+- Direction de la Qibla avec boussole
+- Notifications pour les heures de prière
+- Calendrier islamique
+
 ### ⭐ Favoris
 - Liste des versets favoris
 - Historique de lecture (50 derniers)
@@ -129,10 +160,12 @@ lib/
 - **Langage**: Dart 3.5.4
 - **État**: Riverpod
 - **Navigation**: GoRouter
-- **Base de données**: SQLite (sqflite)
+- **Base de données**: SQLite (sqflite), Hive
 - **Audio**: speech_to_text, flutter_tts
+- **Maps**: Google Maps Flutter
+- **Location**: Geolocator, Geocoding
 - **UI**: flutter_screenutil, responsive_framework
-- **Sérialisation**: json_annotation
+- **Sérialisation**: json_annotation, freezed
 
 ## 📦 Dépendances Principales
 
@@ -144,6 +177,8 @@ dependencies:
   speech_to_text: ^7.0.0
   flutter_tts: ^4.1.0
   sqflite: ^2.3.3+1
+  google_maps_flutter: ^2.5.3
+  geolocator: ^13.0.1
   string_similarity: ^2.0.0
   # ... et plus
 ```
@@ -154,9 +189,10 @@ dependencies:
 - [ ] Tafsir Ibn Kathir intégré
 - [ ] Gamification avec badges
 - [ ] Mode enfant avec syllabation
-- [ ] Qibla et horaires de prière
 - [ ] Partage social
 - [ ] Firebase Auth & Cloud
+- [ ] Mode hors-ligne pour les cartes
+- [ ] Avis et commentaires sur les mosquées
 
 ## 🤝 Contribution
 
@@ -176,6 +212,7 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de 
 
 - **Communauté musulmane** pour l'inspiration
 - **Équipe Flutter** pour le framework
+- **Google Maps** pour les services de cartographie
 - **Contributors** des packages utilisés
 
 ---

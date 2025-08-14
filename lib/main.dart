@@ -9,6 +9,8 @@ import 'screens/read_screen.dart';
 import 'screens/listen_screen.dart';
 import 'screens/favorites_screen_modern.dart';
 import 'screens/settings_screen.dart';
+import 'screens/prayers_screen.dart';
+import 'screens/mosque_finder_screen.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_constants.dart';
 
@@ -112,7 +114,6 @@ class MainNavigationScreen extends StatefulWidget {
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
-
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
@@ -121,6 +122,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const ReadScreen(),
     const PrayersScreen(),
     const ListenScreen(),
+    const MosqueFinderScreen(),
   ];
 
   @override
@@ -176,6 +178,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               icon: Icon(Icons.mic_outlined),
               activeIcon: Icon(Icons.mic),
               label: 'Écouter',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.map_outlined),
+              activeIcon: Icon(Icons.map),
+              label: 'Mosquées',
             ),
           ],
         ),
