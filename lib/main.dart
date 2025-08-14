@@ -7,6 +7,7 @@ import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/read_screen.dart';
 import 'screens/listen_screen.dart';
+import 'screens/prayers_screen.dart';
 import 'screens/favorites_screen_modern.dart';
 import 'screens/settings_screen.dart';
 import 'screens/prayers_screen.dart';
