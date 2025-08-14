@@ -68,22 +68,22 @@ flutter:
     - assets/images/
     - assets/audio/
   
-  fonts:
-    - family: AmiriQuran
-      fonts:
-        - asset: assets/fonts/AmiriQuran-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/AmiriQuran-Bold.ttf
-          weight: 700
-    - family: Tajawal
-      fonts:
-        - asset: assets/fonts/Tajawal-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/Tajawal-Bold.ttf
-          weight: 700
-    - family: NotoSansArabic
-      fonts:
-        - asset: assets/fonts/NotoSansArabic-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/NotoSansArabic-Bold.ttf
-          weight: 700
+  # fonts:
+    # - family: AmiriQuran
+    #   fonts:
+    #     - asset: assets/fonts/AmiriQuran-Regular.ttf
+    #       weight: 400
+    #     - asset: assets/fonts/AmiriQuran-Bold.ttf
+    #       weight: 700
+    # - family: Tajawal
+    #   fonts:
+    #     - asset: assets/fonts/Tajawal-Regular.ttf
+    #       weight: 400
+    #     - asset: assets/fonts/Tajawal-Bold.ttf
+    #       weight: 700
+    # - family: NotoSansArabic
+    #   fonts:
+    #     - asset: assets/fonts/NotoSansArabic-Regular.ttf
+    #       weight: 400
+    #     - asset: assets/fonts/NotoSansArabic-Bold.ttf
+    #       weight: 700

@@ -56,15 +56,17 @@ final searchResultsProvider = FutureProvider<List<dynamic>>((ref) async {
 
 // Favoris et historique
 final favoritesProvider = StateNotifierProvider<FavoritesNotifier, List<String>>((ref) {
-  return FavoritesNotifier();
+  return FavoritesNotifier(ref);
 });
 
 final readingHistoryProvider = StateNotifierProvider<ReadingHistoryNotifier, List<String>>((ref) {
-  return ReadingHistoryNotifier();
+  return ReadingHistoryNotifier(ref);
 });
 
 class FavoritesNotifier extends StateNotifier<List<String>> {
-  FavoritesNotifier() : super([]);
+  final Ref _ref;
+
+  FavoritesNotifier(this._ref) : super([]);
 
   void addFavorite(String ayahId) {
     if (!state.contains(ayahId)) {
@@ -78,7 +80,9 @@ class FavoritesNotifier extends StateNotifier<List<String>> {
 }
 
 class ReadingHistoryNotifier extends StateNotifier<List<String>> {
-  ReadingHistoryNotifier() : super([]);
+  final Ref _ref;
+
+  ReadingHistoryNotifier(this._ref) : super([]);
 
   void addToHistory(String ayahId) {
     state = [ayahId, ...state.where((id) => id != ayahId).take(99)].toList();
