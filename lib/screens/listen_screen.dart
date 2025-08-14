@@ -122,50 +122,52 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
                 ),
               ],
             ),
-            
+
             // Contenu principal
             SliverToBoxAdapter(
               child: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(AppConstants.defaultPadding.w),
-          child: Column(
-            children: [
-              // Instructions
-              _buildInstructions(),
-              
-              SizedBox(height: 32.h),
-              
-              // Animation d'écoute
-              Expanded(
-                flex: 2,
-                child: Center(
-                  child: ListeningAnimation(
-                    isListening: isListening,
-                    confidence: confidence,
+                child: Padding(
+                  padding: EdgeInsets.all(AppConstants.defaultPadding.w),
+                  child: Column(
+                    children: [
+                      // Instructions
+                      _buildInstructions(),
+
+                      SizedBox(height: 32.h),
+
+                      // Animation d'écoute
+                      Container(
+                        height: 200.h,
+                        child: Center(
+                          child: ListeningAnimation(
+                            isListening: isListening,
+                            confidence: confidence,
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: 24.h),
+
+                      // Texte transcrit
+                      _buildTranscribedText(),
+
+                      SizedBox(height: 24.h),
+
+                      // Résultats de correspondance
+                      if (matchResults.isNotEmpty) _buildMatchResults(),
+
+                      SizedBox(height: 32.h),
+
+                      // Boutons d'action
+                      _buildActionButtons(quranDataAsync),
+
+                      SizedBox(height: 24.h),
+                    ],
                   ),
                 ),
               ),
-              
-              SizedBox(height: 24.h),
-              
-              // Texte transcrit
-              _buildTranscribedText(),
-              
-              SizedBox(height: 24.h),
-              
-              // Résultats de correspondance
-              if (matchResults.isNotEmpty) _buildMatchResults(),
-              
-              SizedBox(height: 32.h),
-              
-              // Boutons d'action
-              _buildActionButtons(quranDataAsync),
-              
-              SizedBox(height: 24.h),
-            ],
-          ),
-        ),
-        
+            ),
+          ],
         ),
       ),
     );
@@ -231,9 +233,9 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
                 Text(
                   'Reconnaissance Vocale Intelligente',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: AppConstants.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+                        color: AppConstants.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 8.h),
@@ -251,16 +253,16 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
   }
 
   Widget _buildTranscribedText() {
-    return       Container(
-        width: double.infinity,
-        constraints: BoxConstraints(minHeight: 60.h),
+    return Container(
+      width: double.infinity,
+      constraints: BoxConstraints(minHeight: 60.h),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: Colors.grey[50],
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: transcribedText.isNotEmpty 
-              ? AppConstants.primaryColor 
+          color: transcribedText.isNotEmpty
+              ? AppConstants.primaryColor
               : Colors.grey[300]!,
         ),
       ),
@@ -278,16 +280,16 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
               Text(
                 'Texte reconnu :',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppConstants.primaryColor,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: AppConstants.primaryColor,
+                    ),
               ),
             ],
           ),
           SizedBox(height: 8.h),
           Text(
-            transcribedText.isNotEmpty 
-                ? transcribedText 
+            transcribedText.isNotEmpty
+                ? transcribedText
                 : 'Aucun texte reconnu pour le moment...',
             style: transcribedText.isNotEmpty
                 ? AppTheme.arabicTextStyle(
@@ -295,11 +297,11 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
                     color: AppConstants.textColor,
                   )
                 : Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[500],
-                    fontStyle: FontStyle.italic,
-                  ),
-            textDirection: transcribedText.isNotEmpty 
-                ? TextDirection.rtl 
+                      color: Colors.grey[500],
+                      fontStyle: FontStyle.italic,
+                    ),
+            textDirection: transcribedText.isNotEmpty
+                ? TextDirection.rtl
                 : TextDirection.ltr,
           ),
           if (confidence > 0) ...[
@@ -313,13 +315,13 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
                 Text(
                   '${(confidence * 100).toStringAsFixed(1)}%',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: confidence > 0.7 
-                        ? AppConstants.successColor
-                        : confidence > 0.4
-                            ? AppConstants.warningColor
-                            : AppConstants.errorColor,
-                  ),
+                        fontWeight: FontWeight.bold,
+                        color: confidence > 0.7
+                            ? AppConstants.successColor
+                            : confidence > 0.4
+                                ? AppConstants.warningColor
+                                : AppConstants.errorColor,
+                      ),
                 ),
               ],
             ),
@@ -354,9 +356,9 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
               Text(
                 'Correspondances trouvées :',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppConstants.successColor,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: AppConstants.successColor,
+                    ),
               ),
             ],
           ),
@@ -387,8 +389,8 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
               Text(
                 '${result.matchedSurah!.name} - Verset ${result.matchedAyah!.numberInSurah}',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
@@ -453,11 +455,15 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
             width: 80.w,
             height: 80.h,
             decoration: BoxDecoration(
-              color: isListening ? AppConstants.errorColor : AppConstants.primaryColor,
+              color: isListening
+                  ? AppConstants.errorColor
+                  : AppConstants.primaryColor,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: (isListening ? AppConstants.errorColor : AppConstants.primaryColor)
+                  color: (isListening
+                          ? AppConstants.errorColor
+                          : AppConstants.primaryColor)
                       .withOpacity(0.3),
                   blurRadius: 10,
                   spreadRadius: 2,
@@ -471,7 +477,7 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
             ),
           ),
         ),
-        
+
         // Bouton pour effacer
         ElevatedButton.icon(
           onPressed: transcribedText.isNotEmpty ? _clearResults : null,
@@ -481,7 +487,7 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
             backgroundColor: Colors.grey[600],
           ),
         ),
-        
+
         // Bouton d'aide
         ElevatedButton.icon(
           onPressed: () => _showHelpDialog(),
@@ -515,7 +521,7 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
       await sttService.startListening();
       if (sttService.isAvailable) {
         ref.read(isListeningProvider.notifier).state = true;
-        
+
         // Écouter les transcriptions
         sttService.transcriptionStream.listen((text) {
           setState(() {
@@ -523,7 +529,7 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
           });
           _processTranscription(text, quranDataAsync);
         });
-        
+
         // Écouter les niveaux de confiance
         sttService.confidenceStream.listen((conf) {
           setState(() {
@@ -541,13 +547,14 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
     }
   }
 
-  void _processTranscription(String text, AsyncValue<dynamic> quranDataAsync) async {
+  void _processTranscription(
+      String text, AsyncValue<dynamic> quranDataAsync) async {
     if (text.isEmpty) return;
 
     quranDataAsync.whenData((quranData) async {
       final audioMatcher = ref.read(audioMatcherProvider);
       final results = await audioMatcher.findMatches(text, quranData);
-      
+
       setState(() {
         matchResults = results;
       });
@@ -556,8 +563,7 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
       if (results.isNotEmpty && results.first.hasMatch) {
         final match = results.first;
         ref.read(readingHistoryProvider.notifier).addToHistory(
-          '${match.matchedSurah!.number}_${match.matchedAyah!.number}'
-        );
+            '${match.matchedSurah!.number}_${match.matchedAyah!.number}');
       }
     });
   }
@@ -571,9 +577,10 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
   void _goToMatchedAyah(AudioMatchResult result) {
     if (result.hasMatch) {
       // Naviguer vers la sourate correspondante
-      ref.read(currentSurahProvider.notifier).state = result.matchedSurah!.number;
+      ref.read(currentSurahProvider.notifier).state =
+          result.matchedSurah!.number;
       ref.read(currentAyahProvider.notifier).state = result.matchedAyah!.number;
-      
+
       // Changer d'onglet vers la lecture
       // (Ceci nécessiterait une communication avec le widget parent)
     }

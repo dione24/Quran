@@ -9,12 +9,14 @@ Une application Flutter complète pour la lecture et l'écoute intelligente du S
 ## ✨ Fonctionnalités
 
 ### 🔊 **Reconnaissance Vocale Intelligente**
+
 - Reconnaissance vocale en arabe (ar-SA)
 - Correspondance automatique avec les versets du Coran
 - Algorithme de similarité avec nettoyage des diacritiques
 - Affichage des résultats avec score de confiance
 
 ### 📖 **Lecture Interactive**
+
 - Navigation complète dans les 114 sourates
 - Affichage du texte arabe avec polices authentiques (Amiri Quran)
 - Traductions françaises intégrées
@@ -22,6 +24,7 @@ Une application Flutter complète pour la lecture et l'écoute intelligente du S
 - Mode lecture continue
 
 ### 🕌 **Localisation de Mosquées**
+
 - Recherche de mosquées à proximité
 - Cartes interactives avec Google Maps
 - Informations détaillées sur chaque mosquée
@@ -29,6 +32,7 @@ Une application Flutter complète pour la lecture et l'écoute intelligente du S
 - Horaires de prière localisés
 
 ### 🎨 **Interface Utilisateur**
+
 - Design islamique respectueux (vert émeraude, doré)
 - 5 écrans principaux avec navigation fluide
 - Animations et transitions douces
@@ -36,6 +40,7 @@ Une application Flutter complète pour la lecture et l'écoute intelligente du S
 - Interface responsive
 
 ### 💾 **Gestion des Données**
+
 - Base de données SQLite embarquée
 - Système de favoris et historique de lecture
 - Stockage local pour fonctionnement hors-ligne
@@ -78,6 +83,7 @@ lib/
 ## 🚀 Installation
 
 ### Prérequis
+
 - Flutter SDK 3.24.5+
 - Dart 3.5.4+
 - Android SDK 33+
@@ -87,23 +93,27 @@ lib/
 ### Étapes
 
 1. **Cloner le repository**
+
    ```bash
    git clone https://github.com/dione24/Quran.git
    cd Quran
    ```
 
 2. **Installer les dépendances**
+
    ```bash
    flutter pub get
    flutter packages pub run build_runner build
    ```
 
 3. **Configurer Google Maps**
+
    - Obtenir une clé API Google Maps
    - Ajouter la clé dans `android/app/src/main/AndroidManifest.xml`
    - Ajouter la clé dans `ios/Runner/AppDelegate.swift`
 
 4. **Lancer l'application**
+
    ```bash
    flutter run
    ```
@@ -116,12 +126,14 @@ lib/
 ## 📱 Écrans Principaux
 
 ### 🏠 Accueil
+
 - Salutation islamique contextuelle
 - Actions rapides (Lire, Écouter, Favoris, Recherche)
 - Statistiques utilisateur
 - Verset du jour avec lecture audio
 
 ### 📖 Lecture
+
 - Sélecteur de sourates avec recherche
 - Affichage texte arabe + traduction française
 - Basmalah automatique
@@ -129,6 +141,7 @@ lib/
 - Navigation verset par verset
 
 ### 🎙️ Écoute
+
 - Animation microphone en temps réel
 - Reconnaissance vocale arabe
 - Correspondance automatique avec le Coran
@@ -136,6 +149,7 @@ lib/
 - Navigation vers versets détectés
 
 ### 🕌 Mosquées
+
 - Carte interactive avec localisation
 - Recherche de mosquées par nom ou adresse
 - Informations détaillées (adresse, téléphone, horaires)
@@ -143,12 +157,14 @@ lib/
 - Liste des mosquées à proximité
 
 ### 🕊️ Prières
+
 - Horaires de prière basés sur la localisation
 - Direction de la Qibla avec boussole
 - Notifications pour les heures de prière
 - Calendrier islamique
 
 ### ⭐ Favoris
+
 - Liste des versets favoris
 - Historique de lecture (50 derniers)
 - Export et partage
@@ -219,6 +235,6 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de 
 
 **Développé avec ❤️ pour la communauté musulmane**
 
-*"Et Nous avons fait descendre vers toi le Livre, comme un exposé explicite de toute chose, ainsi qu'un guide, une miséricorde et une bonne annonce aux Musulmans."* - Coran 16:89
+_"Et Nous avons fait descendre vers toi le Livre, comme un exposé explicite de toute chose, ainsi qu'un guide, une miséricorde et une bonne annonce aux Musulmans."_ - Coran 16:89
 
 **بارك الله فيكم**
