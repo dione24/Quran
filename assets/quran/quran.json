@@ -1,234 +1,153 @@
 {
-  "surahs": [
-    {
-      "number": 1,
-      "name": "الفاتحة",
-      "englishName": "Al-Fatihah",
-      "englishNameTranslation": "The Opening",
-      "revelationType": "Meccan",
-      "numberOfAyahs": 7,
-      "ayahs": [
-        {
-          "number": 1,
-          "text": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-          "numberInSurah": 1,
-          "juz": 1,
-          "manzil": 1,
-          "page": 1,
-          "ruku": 1,
-          "hizbQuarter": 1,
-          "sajda": false,
-          "translation": "Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux."
+    "surahs": [{
+            "number": 1,
+            "name": "الفاتحة",
+            "englishName": "Al-Fatihah",
+            "englishNameTranslation": "The Opening",
+            "revelationType": "Meccan",
+            "numberOfAyahs": 7,
+            "ayahs": [{
+                    "number": 1,
+                    "text": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+                    "numberInSurah": 1,
+                    "juz": 1,
+                    "manzil": 1,
+                    "page": 1,
+                    "ruku": 1,
+                    "hizbQuarter": 1,
+                    "sajda": false,
+                    "translation": "Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux."
+                },
+                {
+                    "number": 2,
+                    "text": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+                    "numberInSurah": 2,
+                    "juz": 1,
+                    "manzil": 1,
+                    "page": 1,
+                    "ruku": 1,
+                    "hizbQuarter": 1,
+                    "sajda": false,
+                    "translation": "Louange à Allah, Seigneur de l'univers."
+                },
+                {
+                    "number": 3,
+                    "text": "الرَّحْمَٰنِ الرَّحِيمِ",
+                    "numberInSurah": 3,
+                    "juz": 1,
+                    "manzil": 1,
+                    "page": 1,
+                    "ruku": 1,
+                    "hizbQuarter": 1,
+                    "sajda": false,
+                    "translation": "Le Tout Miséricordieux, le Très Miséricordieux."
+                },
+                {
+                    "number": 4,
+                    "text": "مَالِكِ يَوْمِ الدِّينِ",
+                    "numberInSurah": 4,
+                    "juz": 1,
+                    "manzil": 1,
+                    "page": 1,
+                    "ruku": 1,
+                    "hizbQuarter": 1,
+                    "sajda": false,
+                    "translation": "Maître du Jour de la rétribution."
+                },
+                {
+                    "number": 5,
+                    "text": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+                    "numberInSurah": 5,
+                    "juz": 1,
+                    "manzil": 1,
+                    "page": 1,
+                    "ruku": 1,
+                    "hizbQuarter": 1,
+                    "sajda": false,
+                    "translation": "C'est Toi [Seul] que nous adorons, et c'est Toi [Seul] dont nous implorons secours."
+                },
+                {
+                    "number": 6,
+                    "text": "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
+                    "numberInSurah": 6,
+                    "juz": 1,
+                    "manzil": 1,
+                    "page": 1,
+                    "ruku": 1,
+                    "hizbQuarter": 1,
+                    "sajda": false,
+                    "translation": "Guide-nous dans le droit chemin."
+                },
+                {
+                    "number": 7,
+                    "text": "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
+                    "numberInSurah": 7,
+                    "juz": 1,
+                    "manzil": 1,
+                    "page": 1,
+                    "ruku": 1,
+                    "hizbQuarter": 1,
+                    "sajda": false,
+                    "translation": "le chemin de ceux que Tu as comblés de faveurs, non pas de ceux qui ont encouru Ta colère, ni des égarés."
+                }
+            ]
         },
         {
-          "number": 2,
-          "text": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
-          "numberInSurah": 2,
-          "juz": 1,
-          "manzil": 1,
-          "page": 1,
-          "ruku": 1,
-          "hizbQuarter": 1,
-          "sajda": false,
-          "translation": "Louange à Allah, Seigneur de l'univers."
-        },
-        {
-          "number": 3,
-          "text": "الرَّحْمَٰنِ الرَّحِيمِ",
-          "numberInSurah": 3,
-          "juz": 1,
-          "manzil": 1,
-          "page": 1,
-          "ruku": 1,
-          "hizbQuarter": 1,
-          "sajda": false,
-          "translation": "Le Tout Miséricordieux, le Très Miséricordieux,"
-        },
-        {
-          "number": 4,
-          "text": "مَالِكِ يَوْمِ الدِّينِ",
-          "numberInSurah": 4,
-          "juz": 1,
-          "manzil": 1,
-          "page": 1,
-          "ruku": 1,
-          "hizbQuarter": 1,
-          "sajda": false,
-          "translation": "Maître du Jour de la rétribution."
-        },
-        {
-          "number": 5,
-          "text": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
-          "numberInSurah": 5,
-          "juz": 1,
-          "manzil": 1,
-          "page": 1,
-          "ruku": 1,
-          "hizbQuarter": 1,
-          "sajda": false,
-          "translation": "C'est Toi [Seul] que nous adorons, et c'est Toi [Seul] dont nous implorons secours."
-        },
-        {
-          "number": 6,
-          "text": "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
-          "numberInSurah": 6,
-          "juz": 1,
-          "manzil": 1,
-          "page": 1,
-          "ruku": 1,
-          "hizbQuarter": 1,
-          "sajda": false,
-          "translation": "Guide-nous dans le droit chemin,"
-        },
-        {
-          "number": 7,
-          "text": "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
-          "numberInSurah": 7,
-          "juz": 1,
-          "manzil": 1,
-          "page": 1,
-          "ruku": 1,
-          "hizbQuarter": 1,
-          "sajda": false,
-          "translation": "le chemin de ceux que Tu as comblés de faveurs, non pas de ceux qui ont encouru Ta colère, ni des égarés."
+            "number": 112,
+            "name": "الإخلاص",
+            "englishName": "Al-Ikhlas",
+            "englishNameTranslation": "The Sincerity",
+            "revelationType": "Meccan",
+            "numberOfAyahs": 4,
+            "ayahs": [{
+                    "number": 6231,
+                    "text": "قُلْ هُوَ اللَّهُ أَحَدٌ",
+                    "numberInSurah": 1,
+                    "juz": 30,
+                    "manzil": 7,
+                    "page": 604,
+                    "ruku": 556,
+                    "hizbQuarter": 240,
+                    "sajda": false,
+                    "translation": "Dis: «Il est Allah, Unique."
+                },
+                {
+                    "number": 6232,
+                    "text": "اللَّهُ الصَّمَدُ",
+                    "numberInSurah": 2,
+                    "juz": 30,
+                    "manzil": 7,
+                    "page": 604,
+                    "ruku": 556,
+                    "hizbQuarter": 240,
+                    "sajda": false,
+                    "translation": "Allah, Le Seul à être imploré pour ce que nous désirons."
+                },
+                {
+                    "number": 6233,
+                    "text": "لَمْ يَلِدْ وَلَمْ يُولَدْ",
+                    "numberInSurah": 3,
+                    "juz": 30,
+                    "manzil": 7,
+                    "page": 604,
+                    "ruku": 556,
+                    "hizbQuarter": 240,
+                    "sajda": false,
+                    "translation": "Il n'a jamais engendré, n'a pas été engendré non plus."
+                },
+                {
+                    "number": 6234,
+                    "text": "وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ",
+                    "numberInSurah": 4,
+                    "juz": 30,
+                    "manzil": 7,
+                    "page": 604,
+                    "ruku": 556,
+                    "hizbQuarter": 240,
+                    "sajda": false,
+                    "translation": "Et nul n'est égal à Lui»."
+                }
+            ]
         }
-      ]
-    },
-    {
-      "number": 2,
-      "name": "البقرة",
-      "englishName": "Al-Baqarah",
-      "englishNameTranslation": "The Cow",
-      "revelationType": "Medinan",
-      "numberOfAyahs": 286,
-      "ayahs": [
-        {
-          "number": 8,
-          "text": "الم",
-          "numberInSurah": 1,
-          "juz": 1,
-          "manzil": 1,
-          "page": 2,
-          "ruku": 1,
-          "hizbQuarter": 1,
-          "sajda": false,
-          "translation": "Alif, Lam, Mim."
-        },
-        {
-          "number": 9,
-          "text": "ذَٰلِكَ الْكِتَابُ لَا رَيْبَ فِيهِ هُدًى لِّلْمُتَّقِينَ",
-          "numberInSurah": 2,
-          "juz": 1,
-          "manzil": 1,
-          "page": 2,
-          "ruku": 1,
-          "hizbQuarter": 1,
-          "sajda": false,
-          "translation": "Ce Livre n'a pas de doute en lui. C'est un guide pour les pieux,"
-        },
-        {
-          "number": 10,
-          "text": "الَّذِينَ يُؤْمِنُونَ بِالْغَيْبِ وَيُقِيمُونَ الصَّلَاةَ وَمِمَّا رَزَقْنَاهُمْ يُنفِقُونَ",
-          "numberInSurah": 3,
-          "juz": 1,
-          "manzil": 1,
-          "page": 2,
-          "ruku": 1,
-          "hizbQuarter": 1,
-          "sajda": false,
-          "translation": "qui croient à l'invisible et accomplissent la Salat et dépensent [dans l'obéissance à Allah], de ce que Nous leur avons attribué,"
-        },
-        {
-          "number": 11,
-          "text": "وَالَّذِينَ يُؤْمِنُونَ بِمَا أُنزِلَ إِلَيْكَ وَمَا أُنزِلَ مِن قَبْلِكَ وَبِالْآخِرَةِ هُمْ يُوقِنُونَ",
-          "numberInSurah": 4,
-          "juz": 1,
-          "manzil": 1,
-          "page": 2,
-          "ruku": 1,
-          "hizbQuarter": 1,
-          "sajda": false,
-          "translation": "qui ont foi en ce qu'on a fait descendre vers toi et en ce qu'on a fait descendre avant toi et qui croient fermement en l'au-delà."
-        },
-        {
-          "number": 12,
-          "text": "أُولَٰئِكَ عَلَىٰ هُدًى مِّن رَّبِّهِمْ وَأُولَٰئِكَ هُمُ الْمُفْلِحُونَ",
-          "numberInSurah": 5,
-          "juz": 1,
-          "manzil": 1,
-          "page": 2,
-          "ruku": 1,
-          "hizbQuarter": 1,
-          "sajda": false,
-          "translation": "Ceux-là sont sur le bon chemin de leur Seigneur, et ce sont eux qui réussissent (dans cette vie et dans la vie future)."
-        }
-      ]
-    },
-    {
-      "number": 112,
-      "name": "الإخلاص",
-      "englishName": "Al-Ikhlas",
-      "englishNameTranslation": "The Sincerity",
-      "revelationType": "Meccan",
-      "numberOfAyahs": 4,
-      "ayahs": [
-        {
-          "number": 6233,
-          "text": "قُلْ هُوَ اللَّهُ أَحَدٌ",
-          "numberInSurah": 1,
-          "juz": 30,
-          "manzil": 7,
-          "page": 604,
-          "ruku": 556,
-          "hizbQuarter": 240,
-          "sajda": false,
-          "translation": "Dis: «Il est Allah, Unique."
-        },
-        {
-          "number": 6234,
-          "text": "اللَّهُ الصَّمَدُ",
-          "numberInSurah": 2,
-          "juz": 30,
-          "manzil": 7,
-          "page": 604,
-          "ruku": 556,
-          "hizbQuarter": 240,
-          "sajda": false,
-          "translation": "Allah, Le Seul à être imploré pour ce que nous désirons."
-        },
-        {
-          "number": 6235,
-          "text": "لَمْ يَلِدْ وَلَمْ يُولَدْ",
-          "numberInSurah": 3,
-          "juz": 30,
-          "manzil": 7,
-          "page": 604,
-          "ruku": 556,
-          "hizbQuarter": 240,
-          "sajda": false,
-          "translation": "Il n'a jamais engendré, n'a pas été engendré non plus."
-        },
-        {
-          "number": 6236,
-          "text": "وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
-          "numberInSurah": 4,
-          "juz": 30,
-          "manzil": 7,
-          "page": 604,
-          "ruku": 556,
-          "hizbQuarter": 240,
-          "sajda": false,
-          "translation": "Et nul n'est égal à Lui»."
-        }
-      ]
-    }
-  ],
-  "metadata": {
-    "version": "1.0",
-    "source": "Quran AI Reader",
-    "totalSurahs": 114,
-    "totalAyahs": 6236,
-    "languages": ["ar", "fr"],
-    "created": "2024-01-01"
-  }
+    ]
 }

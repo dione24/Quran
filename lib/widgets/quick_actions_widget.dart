@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import '../utils/app_constants.dart';
 
 class QuickActionsWidget extends ConsumerWidget {
@@ -17,8 +18,8 @@ class QuickActionsWidget extends ConsumerWidget {
             Text(
               'Actions rapides',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppConstants.primaryColor,
-              ),
+                    color: AppConstants.primaryColor,
+                  ),
             ),
             SizedBox(height: 16.h),
             Row(
@@ -30,7 +31,7 @@ class QuickActionsWidget extends ConsumerWidget {
                   label: 'Lire\nle Coran',
                   color: AppConstants.primaryColor,
                   onTap: () {
-                    // Naviguer vers l'écran de lecture
+                    context.push('/read');
                   },
                 ),
                 _buildQuickAction(
@@ -39,7 +40,7 @@ class QuickActionsWidget extends ConsumerWidget {
                   label: 'Écouter &\nReconnaître',
                   color: AppConstants.accentColor,
                   onTap: () {
-                    // Naviguer vers l'écran d'écoute
+                    context.push('/listen');
                   },
                 ),
                 _buildQuickAction(
@@ -48,16 +49,16 @@ class QuickActionsWidget extends ConsumerWidget {
                   label: 'Mes\nFavoris',
                   color: AppConstants.favoriteColor,
                   onTap: () {
-                    // Naviguer vers les favoris
+                    context.push('/favorites');
                   },
                 ),
                 _buildQuickAction(
                   context,
-                  icon: Icons.search,
-                  label: 'Recherche\nAvancée',
+                  icon: Icons.access_time,
+                  label: 'Horaires\nPrières',
                   color: AppConstants.infoColor,
                   onTap: () {
-                    // Ouvrir la recherche
+                    _showPrayerTimesDialog(context, ref);
                   },
                 ),
               ],
@@ -103,13 +104,56 @@ class QuickActionsWidget extends ConsumerWidget {
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+                    fontWeight: FontWeight.w500,
+                  ),
               textAlign: TextAlign.center,
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showPrayerTimesDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(
+                Icons.access_time,
+                color: AppConstants.primaryColor,
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                'Horaires de Prière',
+                style: TextStyle(color: AppConstants.primaryColor),
+              ),
+            ],
+          ),
+          content: Container(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Consultez les horaires détaillés dans l\'écran principal',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                SizedBox(height: 16.h),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // L'utilisateur peut voir les horaires sur l'écran principal
+                  },
+                  child: Text('Fermer'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

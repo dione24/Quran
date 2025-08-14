@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/stt_service.dart';
 import '../services/tts_service.dart';
+import '../services/quran_audio_service.dart';
 import '../services/audio_matcher.dart';
 import '../data/quran_db.dart';
 import '../models/quran_data.dart';
@@ -14,14 +15,21 @@ import '../services/prayer_times_service.dart';
 // Services principaux
 final sttServiceProvider = Provider<STTService>((ref) => STTService());
 final ttsServiceProvider = Provider<TTSService>((ref) => TTSService());
+
+// Provider pour Quran Audio Service
+final quranAudioServiceProvider = Provider<QuranAudioService>((ref) {
+  return QuranAudioService();
+});
 final audioMatcherProvider = Provider<AudioMatcher>((ref) => AudioMatcher());
 final quranDBProvider = Provider<QuranDB>((ref) => QuranDB());
 // Services avancés (stubs pour compilation)
-final firebaseServiceProvider = Provider<FirebaseService>((ref) => FirebaseService());
+final firebaseServiceProvider =
+    Provider<FirebaseService>((ref) => FirebaseService());
 final tajwidServiceProvider = Provider<TajwidService>((ref) => TajwidService());
 final tafsirServiceProvider = Provider<TafsirService>((ref) => TafsirService());
 final qiblaServiceProvider = Provider<QiblaService>((ref) => QiblaService());
-final prayerTimesServiceProvider = Provider<PrayerTimesService>((ref) => PrayerTimesService());
+final prayerTimesServiceProvider =
+    Provider<PrayerTimesService>((ref) => PrayerTimesService());
 
 // Données du Coran
 final quranDataProvider = FutureProvider<QuranData>((ref) async {
@@ -48,25 +56,25 @@ final searchQueryProvider = StateProvider<String>((ref) => '');
 final searchResultsProvider = FutureProvider<List<dynamic>>((ref) async {
   final query = ref.watch(searchQueryProvider);
   if (query.isEmpty) return [];
-  
+
   // final quranData = await ref.read(quranDataProvider.future);
   // Implémentation de la recherche à venir
   return [];
 });
 
 // Favoris et historique
-final favoritesProvider = StateNotifierProvider<FavoritesNotifier, List<String>>((ref) {
-  return FavoritesNotifier(ref);
+final favoritesProvider =
+    StateNotifierProvider<FavoritesNotifier, List<String>>((ref) {
+  return FavoritesNotifier();
 });
 
-final readingHistoryProvider = StateNotifierProvider<ReadingHistoryNotifier, List<String>>((ref) {
-  return ReadingHistoryNotifier(ref);
+final readingHistoryProvider =
+    StateNotifierProvider<ReadingHistoryNotifier, List<String>>((ref) {
+  return ReadingHistoryNotifier();
 });
 
 class FavoritesNotifier extends StateNotifier<List<String>> {
-  final Ref _ref;
-
-  FavoritesNotifier(this._ref) : super([]);
+  FavoritesNotifier() : super([]);
 
   void addFavorite(String ayahId) {
     if (!state.contains(ayahId)) {
@@ -80,9 +88,7 @@ class FavoritesNotifier extends StateNotifier<List<String>> {
 }
 
 class ReadingHistoryNotifier extends StateNotifier<List<String>> {
-  final Ref _ref;
-
-  ReadingHistoryNotifier(this._ref) : super([]);
+  ReadingHistoryNotifier() : super([]);
 
   void addToHistory(String ayahId) {
     state = [ayahId, ...state.where((id) => id != ayahId).take(99)].toList();
@@ -90,7 +96,8 @@ class ReadingHistoryNotifier extends StateNotifier<List<String>> {
 }
 
 // Gamification
-final userStatsProvider = StateNotifierProvider<UserStatsNotifier, UserStats>((ref) {
+final userStatsProvider =
+    StateNotifierProvider<UserStatsNotifier, UserStats>((ref) {
   return UserStatsNotifier();
 });
 

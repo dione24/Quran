@@ -57,17 +57,75 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
     });
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Écouter le Coran'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            onPressed: () => _showHelpDialog(),
-            tooltip: 'Aide',
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppConstants.primaryColor.withOpacity(0.05),
+              AppConstants.secondaryColor.withOpacity(0.03),
+              Colors.white,
+            ],
           ),
-        ],
-      ),
-      body: SafeArea(
+        ),
+        child: CustomScrollView(
+          slivers: [
+            // AppBar moderne avec gradient
+            SliverAppBar(
+              expandedHeight: 120.h,
+              floating: false,
+              pinned: true,
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppConstants.primaryColor,
+                        AppConstants.secondaryColor,
+                      ],
+                    ),
+                  ),
+                  child: SafeArea(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(height: 20.h),
+                        Icon(
+                          Icons.mic,
+                          color: Colors.white,
+                          size: 32.sp,
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          'Écouter & Reconnaître',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.help_outline, color: Colors.white),
+                  onPressed: () => _showHelpDialog(),
+                  tooltip: 'Aide',
+                ),
+              ],
+            ),
+            
+            // Contenu principal
+            SliverToBoxAdapter(
+              child: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(AppConstants.defaultPadding.w),
           child: Column(
@@ -107,38 +165,86 @@ class _ListenScreenState extends ConsumerState<ListenScreen>
             ],
           ),
         ),
+        
+        ),
       ),
     );
   }
 
   Widget _buildInstructions() {
-    return Card(
-      color: AppConstants.primaryColor.withOpacity(0.1),
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          children: [
-            Icon(
-              Icons.mic,
-              size: 32.sp,
-              color: AppConstants.primaryColor,
+    return Container(
+      margin: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppConstants.primaryColor.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20.r),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              top: BorderSide(color: AppConstants.primaryColor, width: 4),
             ),
-            SizedBox(height: 12.h),
-            Text(
-              'Reconnaissance Vocale Intelligente',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppConstants.primaryColor,
-                fontWeight: FontWeight.bold,
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(20.w),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  AppConstants.primaryColor.withOpacity(0.1),
+                  AppConstants.primaryColor.withOpacity(0.05),
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8.h),
-            Text(
-              'Récitez ou jouez une sourate à voix haute.\nL\'application reconnaîtra automatiquement les versets.',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+            child: Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: AppConstants.primaryColor,
+                    borderRadius: BorderRadius.circular(12.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppConstants.primaryColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.mic,
+                    color: Colors.white,
+                    size: 24.sp,
+                  ),
+                ),
+                SizedBox(height: 16.w),
+                Text(
+                  'Reconnaissance Vocale Intelligente',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: AppConstants.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'Récitez ou jouez une sourate à voix haute.\nL\'application reconnaîtra automatiquement les versets.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

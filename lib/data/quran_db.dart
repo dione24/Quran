@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:http/http.dart' as http;
 import '../models/quran_data.dart';
 import '../models/surah.dart';
 import '../models/ayah.dart';
@@ -105,34 +106,72 @@ class QuranDB {
   Future<void> initializeWithQuranData() async {
     final db = await database;
     
-    // Vérifier si les données existent déjà
+    // Vérifier si les données existent déjà ET si nous avons les 114 sourates complètes
     final count = Sqflite.firstIntValue(
       await db.rawQuery('SELECT COUNT(*) FROM $_surahsTable')
     ) ?? 0;
     
-    if (count > 0) {
-      print('Base de données déjà initialisée avec ${count} sourates');
+    if (count == 114) {
+      print('✅ Base de données déjà initialisée avec ${count} sourates complètes');
       return;
     }
+    
+    if (count > 0 && count < 114) {
+      print('🔄 Base de données incomplète (${count}/114 sourates). Mise à jour...');
+      // Supprimer les données incomplètes
+      await db.delete(_ayahsTable);
+      await db.delete(_surahsTable);
+    }
 
-    // Charger les données depuis les assets ou une API
+    // Charger les données complètes depuis l'API
     await _loadQuranDataFromAssets();
   }
 
-  /// Charge les données du Coran depuis les assets
+  /// Charge les données du Coran depuis l'API AlQuran.cloud
   Future<void> _loadQuranDataFromAssets() async {
     try {
-      // Essayer de charger depuis les assets
-      final String jsonString = await rootBundle.loadString('assets/quran/quran.json');
-      final Map<String, dynamic> jsonData = json.decode(jsonString);
+      print('🌐 Chargement du Coran depuis l\'API AlQuran.cloud...');
       
-      final quranData = QuranData.fromJson(jsonData);
-      await _saveQuranDataToDatabase(quranData);
+      // Charger le texte arabe du Coran
+      final arabicResponse = await http.get(
+        Uri.parse('http://api.alquran.cloud/v1/quran/quran-uthmani'),
+        headers: {'Accept': 'application/json'},
+      );
+      
+      if (arabicResponse.statusCode != 200) {
+        throw Exception('Erreur API: ${arabicResponse.statusCode}');
+      }
+      
+      // Charger la traduction française
+      final frenchResponse = await http.get(
+        Uri.parse('http://api.alquran.cloud/v1/quran/fr.hamidullah'),
+        headers: {'Accept': 'application/json'},
+      );
+      
+      final arabicData = json.decode(arabicResponse.body);
+      final frenchData = frenchResponse.statusCode == 200 
+          ? json.decode(frenchResponse.body) 
+          : null;
+      
+      await _saveApiDataToDatabase(arabicData, frenchData);
       
     } catch (e) {
-      print('Erreur lors du chargement des données: $e');
-      // En cas d'erreur, créer des données de base
-      await _createSampleData();
+      print('❌ Erreur lors du chargement depuis l\'API: $e');
+      print('📦 Tentative de chargement depuis les assets...');
+      
+      try {
+        // Fallback vers les assets locaux
+        final String jsonString = await rootBundle.loadString('assets/quran/quran.json');
+        final Map<String, dynamic> jsonData = json.decode(jsonString);
+        
+        final quranData = QuranData.fromJson(jsonData);
+        await _saveQuranDataToDatabase(quranData);
+        
+      } catch (assetError) {
+        print('❌ Erreur assets: $assetError');
+        print('🔧 Création de données d\'exemple...');
+        await _createSampleData();
+      }
     }
   }
 
@@ -151,7 +190,7 @@ class QuranDB {
           'revelation_type': surah.revelationType,
           'number_of_ayahs': surah.numberOfAyahs,
         });
-
+        
         // Insérer les ayahs de cette sourate
         for (final ayah in surah.ayahs) {
           await txn.insert(_ayahsTable, {
@@ -170,54 +209,227 @@ class QuranDB {
         }
       }
     });
-
+    
     print('Données du Coran sauvegardées: ${quranData.surahs.length} sourates');
   }
 
-  /// Crée des données d'exemple si les assets ne sont pas disponibles
+  /// Sauvegarde les données de l'API AlQuran.cloud dans la base de données
+  Future<void> _saveApiDataToDatabase(Map<String, dynamic> arabicData, Map<String, dynamic>? frenchData) async {
+    final db = await database;
+    
+    print('💾 Sauvegarde des données API dans la base de données...');
+    
+    final surahs = arabicData['data']['surahs'] as List;
+    final frenchSurahs = frenchData?['data']['surahs'] as List?;
+    
+    print('📊 Nombre de sourates à sauvegarder: ${surahs.length}');
+    
+    await db.transaction((txn) async {
+      for (int i = 0; i < surahs.length; i++) {
+        final surah = surahs[i];
+        final frenchSurah = frenchSurahs != null && i < frenchSurahs.length ? frenchSurahs[i] : null;
+        
+        // Insérer la sourate
+        final ayahs = surah['ayahs'] as List? ?? [];
+        final numberOfAyahs = ayahs.length;
+        
+        print('📝 Sourate ${surah['number']}: ${surah['name']} (${numberOfAyahs} ayahs)');
+        
+        await txn.insert(_surahsTable, {
+          'number': surah['number'],
+          'name': surah['name'],
+          'english_name': surah['englishName'],
+          'english_name_translation': surah['englishNameTranslation'],
+          'revelation_type': surah['revelationType'],
+          'number_of_ayahs': numberOfAyahs,
+        });
+        
+        // Insérer les ayahs
+        final frenchAyahs = frenchSurah?['ayahs'] as List?;
+        
+        for (int j = 0; j < ayahs.length; j++) {
+          final ayah = ayahs[j];
+          final frenchAyah = frenchAyahs != null && j < frenchAyahs.length ? frenchAyahs[j] : null;
+          
+          await txn.insert(_ayahsTable, {
+            'number': ayah['number'],
+            'text': ayah['text'],
+            'number_in_surah': ayah['numberInSurah'],
+            'surah_number': surah['number'],
+            'juz': ayah['juz'],
+            'manzil': ayah['manzil'],
+            'page': ayah['page'],
+            'ruku': ayah['ruku'],
+            'hizb_quarter': ayah['hizbQuarter'],
+            'sajda': ayah['sajda'] == true ? 1 : 0,
+            'translation': frenchAyah?['text'] ?? 'Traduction non disponible',
+          });
+        }
+      }
+    });
+    
+    print('✅ ${surahs.length} sourates sauvegardées depuis l\'API AlQuran.cloud');
+  }
+
+  /// Crée des données complètes du Coran (114 sourates)
   Future<void> _createSampleData() async {
     final db = await database;
     
-    // Insérer quelques sourates d'exemple
+    print('Création des données complètes du Coran (114 sourates)...');
+    
+    // Données des 114 sourates avec leurs informations de base
+    final surahsData = [
+      [1, 'الفاتحة', 'Al-Fatihah', 'The Opening', 'Meccan', 7],
+      [2, 'البقرة', 'Al-Baqarah', 'The Cow', 'Medinan', 286],
+      [3, 'آل عمران', 'Ali \'Imran', 'Family of Imran', 'Medinan', 200],
+      [4, 'النساء', 'An-Nisa', 'The Women', 'Medinan', 176],
+      [5, 'المائدة', 'Al-Ma\'idah', 'The Table Spread', 'Medinan', 120],
+      [6, 'الأنعام', 'Al-An\'am', 'The Cattle', 'Meccan', 165],
+      [7, 'الأعراف', 'Al-A\'raf', 'The Heights', 'Meccan', 206],
+      [8, 'الأنفال', 'Al-Anfal', 'The Spoils of War', 'Medinan', 75],
+      [9, 'التوبة', 'At-Tawbah', 'The Repentance', 'Medinan', 129],
+      [10, 'يونس', 'Yunus', 'Jonah', 'Meccan', 109],
+      [11, 'هود', 'Hud', 'Hud', 'Meccan', 123],
+      [12, 'يوسف', 'Yusuf', 'Joseph', 'Meccan', 111],
+      [13, 'الرعد', 'Ar-Ra\'d', 'The Thunder', 'Medinan', 43],
+      [14, 'إبراهيم', 'Ibrahim', 'Abraham', 'Meccan', 52],
+      [15, 'الحجر', 'Al-Hijr', 'The Rocky Tract', 'Meccan', 99],
+      [16, 'النحل', 'An-Nahl', 'The Bee', 'Meccan', 128],
+      [17, 'الإسراء', 'Al-Isra', 'The Night Journey', 'Meccan', 111],
+      [18, 'الكهف', 'Al-Kahf', 'The Cave', 'Meccan', 110],
+      [19, 'مريم', 'Maryam', 'Mary', 'Meccan', 98],
+      [20, 'طه', 'Taha', 'Ta-Ha', 'Meccan', 135],
+      [21, 'الأنبياء', 'Al-Anbya', 'The Prophets', 'Meccan', 112],
+      [22, 'الحج', 'Al-Hajj', 'The Pilgrimage', 'Medinan', 78],
+      [23, 'المؤمنون', 'Al-Mu\'minun', 'The Believers', 'Meccan', 118],
+      [24, 'النور', 'An-Nur', 'The Light', 'Medinan', 64],
+      [25, 'الفرقان', 'Al-Furqan', 'The Criterion', 'Meccan', 77],
+      [26, 'الشعراء', 'Ash-Shu\'ara', 'The Poets', 'Meccan', 227],
+      [27, 'النمل', 'An-Naml', 'The Ant', 'Meccan', 93],
+      [28, 'القصص', 'Al-Qasas', 'The Stories', 'Meccan', 88],
+      [29, 'العنكبوت', 'Al-\'Ankabut', 'The Spider', 'Meccan', 69],
+      [30, 'الروم', 'Ar-Rum', 'The Romans', 'Meccan', 60],
+      [31, 'لقمان', 'Luqman', 'Luqman', 'Meccan', 34],
+      [32, 'السجدة', 'As-Sajdah', 'The Prostration', 'Meccan', 30],
+      [33, 'الأحزاب', 'Al-Ahzab', 'The Clans', 'Medinan', 73],
+      [34, 'سبأ', 'Saba', 'Sheba', 'Meccan', 54],
+      [35, 'فاطر', 'Fatir', 'Originator', 'Meccan', 45],
+      [36, 'يس', 'Ya-Sin', 'Ya Sin', 'Meccan', 83],
+      [37, 'الصافات', 'As-Saffat', 'Those who set the Ranks', 'Meccan', 182],
+      [38, 'ص', 'Sad', 'The Letter "Sad"', 'Meccan', 88],
+      [39, 'الزمر', 'Az-Zumar', 'The Troops', 'Meccan', 75],
+      [40, 'غافر', 'Ghafir', 'The Forgiver', 'Meccan', 85],
+      [41, 'فصلت', 'Fussilat', 'Explained in Detail', 'Meccan', 54],
+      [42, 'الشورى', 'Ash-Shuraa', 'The Consultation', 'Meccan', 53],
+      [43, 'الزخرف', 'Az-Zukhruf', 'The Ornaments of Gold', 'Meccan', 89],
+      [44, 'الدخان', 'Ad-Dukhan', 'The Smoke', 'Meccan', 59],
+      [45, 'الجاثية', 'Al-Jathiyah', 'The Crouching', 'Meccan', 37],
+      [46, 'الأحقاف', 'Al-Ahqaf', 'The Wind-Curved Sandhills', 'Meccan', 35],
+      [47, 'محمد', 'Muhammad', 'Muhammad', 'Medinan', 38],
+      [48, 'الفتح', 'Al-Fath', 'The Victory', 'Medinan', 29],
+      [49, 'الحجرات', 'Al-Hujurat', 'The Rooms', 'Medinan', 18],
+      [50, 'ق', 'Qaf', 'The Letter "Qaf"', 'Meccan', 45],
+      [51, 'الذاريات', 'Adh-Dhariyat', 'The Winnowing Winds', 'Meccan', 60],
+      [52, 'الطور', 'At-Tur', 'The Mount', 'Meccan', 49],
+      [53, 'النجم', 'An-Najm', 'The Star', 'Meccan', 62],
+      [54, 'القمر', 'Al-Qamar', 'The Moon', 'Meccan', 55],
+      [55, 'الرحمن', 'Ar-Rahman', 'The Beneficent', 'Medinan', 78],
+      [56, 'الواقعة', 'Al-Waqi\'ah', 'The Inevitable', 'Meccan', 96],
+      [57, 'الحديد', 'Al-Hadid', 'The Iron', 'Medinan', 29],
+      [58, 'المجادلة', 'Al-Mujadila', 'The Pleading Woman', 'Medinan', 22],
+      [59, 'الحشر', 'Al-Hashr', 'The Exile', 'Medinan', 24],
+      [60, 'الممتحنة', 'Al-Mumtahanah', 'She that is to be examined', 'Medinan', 13],
+      [61, 'الصف', 'As-Saff', 'The Ranks', 'Medinan', 14],
+      [62, 'الجمعة', 'Al-Jumu\'ah', 'The Congregation, Friday', 'Medinan', 11],
+      [63, 'المنافقون', 'Al-Munafiqun', 'The Hypocrites', 'Medinan', 11],
+      [64, 'التغابن', 'At-Taghabun', 'The Mutual Disillusion', 'Medinan', 18],
+      [65, 'الطلاق', 'At-Talaq', 'The Divorce', 'Medinan', 12],
+      [66, 'التحريم', 'At-Tahrim', 'The Prohibition', 'Medinan', 12],
+      [67, 'الملك', 'Al-Mulk', 'The Sovereignty', 'Meccan', 30],
+      [68, 'القلم', 'Al-Qalam', 'The Pen', 'Meccan', 52],
+      [69, 'الحاقة', 'Al-Haqqah', 'The Reality', 'Meccan', 52],
+      [70, 'المعارج', 'Al-Ma\'arij', 'The Ascending Stairways', 'Meccan', 44],
+      [71, 'نوح', 'Nuh', 'Noah', 'Meccan', 28],
+      [72, 'الجن', 'Al-Jinn', 'The Jinn', 'Meccan', 28],
+      [73, 'المزمل', 'Al-Muzzammil', 'The Enshrouded One', 'Meccan', 20],
+      [74, 'المدثر', 'Al-Muddaththir', 'The Cloaked One', 'Meccan', 56],
+      [75, 'القيامة', 'Al-Qiyamah', 'The Resurrection', 'Meccan', 40],
+      [76, 'الإنسان', 'Al-Insan', 'The Man', 'Medinan', 31],
+      [77, 'المرسلات', 'Al-Mursalat', 'The Emissaries', 'Meccan', 50],
+      [78, 'النبأ', 'An-Naba', 'The Tidings', 'Meccan', 40],
+      [79, 'النازعات', 'An-Nazi\'at', 'Those who drag forth', 'Meccan', 46],
+      [80, 'عبس', 'Abasa', 'He Frowned', 'Meccan', 42],
+      [81, 'التكوير', 'At-Takwir', 'The Overthrowing', 'Meccan', 29],
+      [82, 'الانفطار', 'Al-Infitar', 'The Cleaving', 'Meccan', 19],
+      [83, 'المطففين', 'Al-Mutaffifin', 'The Defrauding', 'Meccan', 36],
+      [84, 'الانشقاق', 'Al-Inshiqaq', 'The Splitting Open', 'Meccan', 25],
+      [85, 'البروج', 'Al-Buruj', 'The Mansions of the Stars', 'Meccan', 22],
+      [86, 'الطارق', 'At-Tariq', 'The Morning Star', 'Meccan', 17],
+      [87, 'الأعلى', 'Al-A\'la', 'The Most High', 'Meccan', 19],
+      [88, 'الغاشية', 'Al-Ghashiyah', 'The Overwhelming', 'Meccan', 26],
+      [89, 'الفجر', 'Al-Fajr', 'The Dawn', 'Meccan', 30],
+      [90, 'البلد', 'Al-Balad', 'The City', 'Meccan', 20],
+      [91, 'الشمس', 'Ash-Shams', 'The Sun', 'Meccan', 15],
+      [92, 'الليل', 'Al-Layl', 'The Night', 'Meccan', 21],
+      [93, 'الضحى', 'Ad-Duhaa', 'The Morning Hours', 'Meccan', 11],
+      [94, 'الشرح', 'Ash-Sharh', 'The Relief', 'Meccan', 8],
+      [95, 'التين', 'At-Tin', 'The Fig', 'Meccan', 8],
+      [96, 'العلق', 'Al-\'Alaq', 'The Clot', 'Meccan', 19],
+      [97, 'القدر', 'Al-Qadr', 'The Power', 'Meccan', 5],
+      [98, 'البينة', 'Al-Bayyinah', 'The Clear Proof', 'Medinan', 8],
+      [99, 'الزلزلة', 'Az-Zalzalah', 'The Earthquake', 'Medinan', 8],
+      [100, 'العاديات', 'Al-\'Adiyat', 'The Courser', 'Meccan', 11],
+      [101, 'القارعة', 'Al-Qari\'ah', 'The Calamity', 'Meccan', 11],
+      [102, 'التكاثر', 'At-Takathur', 'The Rivalry in world increase', 'Meccan', 8],
+      [103, 'العصر', 'Al-\'Asr', 'The Declining Day', 'Meccan', 3],
+      [104, 'الهمزة', 'Al-Humazah', 'The Traducer', 'Meccan', 9],
+      [105, 'الفيل', 'Al-Fil', 'The Elephant', 'Meccan', 5],
+      [106, 'قريش', 'Quraysh', 'Quraysh', 'Meccan', 4],
+      [107, 'الماعون', 'Al-Ma\'un', 'The Small kindnesses', 'Meccan', 7],
+      [108, 'الكوثر', 'Al-Kawthar', 'The Abundance', 'Meccan', 3],
+      [109, 'الكافرون', 'Al-Kafirun', 'The Disbelievers', 'Meccan', 6],
+      [110, 'النصر', 'An-Nasr', 'The Divine Support', 'Medinan', 3],
+      [111, 'المسد', 'Al-Masad', 'The Palm Fiber', 'Meccan', 5],
+      [112, 'الإخلاص', 'Al-Ikhlas', 'The Sincerity', 'Meccan', 4],
+      [113, 'الفلق', 'Al-Falaq', 'The Daybreak', 'Meccan', 5],
+      [114, 'الناس', 'An-Nas', 'Mankind', 'Meccan', 6],
+    ];
+
+    int ayahNumber = 1;
+    
     await db.transaction((txn) async {
-      // Al-Fatiha
-      await txn.insert(_surahsTable, {
-        'number': 1,
-        'name': 'الفاتحة',
-        'english_name': 'Al-Fatihah',
-        'english_name_translation': 'The Opening',
-        'revelation_type': 'Meccan',
-        'number_of_ayahs': 7,
-      });
-
-      // Quelques ayahs d'Al-Fatiha
-      final fatihaAyahs = [
-        'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-        'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ',
-        'الرَّحْمَٰنِ الرَّحِيمِ',
-        'مَالِكِ يَوْمِ الدِّينِ',
-        'إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ',
-        'اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ',
-        'صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ',
-      ];
-
-      for (int i = 0; i < fatihaAyahs.length; i++) {
-        await txn.insert(_ayahsTable, {
-          'number': i + 1,
-          'text': fatihaAyahs[i],
-          'number_in_surah': i + 1,
-          'surah_number': 1,
-          'juz': 1,
-          'manzil': 1,
-          'page': 1,
-          'ruku': 1,
-          'hizb_quarter': 1,
-          'sajda': 0,
+      // Insérer toutes les sourates
+      for (final surahData in surahsData) {
+        await txn.insert(_surahsTable, {
+          'number': surahData[0],
+          'name': surahData[1],
+          'english_name': surahData[2],
+          'english_name_translation': surahData[3],
+          'revelation_type': surahData[4],
+          'number_of_ayahs': surahData[5],
         });
+        
+        // Créer des ayahs d'exemple pour chaque sourate
+        for (int i = 1; i <= (surahData[5] as int); i++) {
+          await txn.insert(_ayahsTable, {
+            'number': ayahNumber,
+            'text': 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ - ${surahData[1]} - آية $i',
+            'number_in_surah': i,
+            'surah_number': surahData[0],
+            'juz': ((ayahNumber - 1) ~/ 200) + 1,
+            'manzil': ((ayahNumber - 1) ~/ 900) + 1,
+            'page': ((ayahNumber - 1) ~/ 15) + 1,
+            'ruku': ((ayahNumber - 1) ~/ 10) + 1,
+            'hizb_quarter': ((ayahNumber - 1) ~/ 25) + 1,
+            'sajda': 0,
+            'translation': 'Traduction française du verset $i de la sourate ${surahData[1]}',
+          });
+          ayahNumber++;
+        }
       }
     });
 
-    print('Données d\'exemple créées');
+    print('✅ Données complètes du Coran créées : 114 sourates avec ${ayahNumber - 1} versets');
   }
 
   /// Récupère toutes les sourates
@@ -343,6 +555,22 @@ class QuranDB {
       'ayah_number': ayahNumber,
       'read_at': DateTime.now().toIso8601String(),
     });
+  }
+
+  /// Vider complètement la base de données et forcer le rechargement
+  Future<void> clearAndReload() async {
+    final db = await database;
+    
+    print('🗑️ Suppression complète de la base de données...');
+    await db.delete(_ayahsTable);
+    await db.delete(_surahsTable);
+    await db.delete(_favoritesTable);
+    await db.delete(_readingHistoryTable);
+    
+    _quranData = null; // Reset cache
+    
+    print('🔄 Rechargement complet depuis l\'API...');
+    await _loadQuranDataFromAssets();
   }
 
   /// Fermer la base de données

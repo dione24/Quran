@@ -112,8 +112,8 @@ class _SurahSelectorState extends State<SurahSelector> {
   }
 
   Widget _buildSurahSelector() {
-    return Container(
-      height: 60.h,
+    return SizedBox(
+      height: widget.showSearch ? 60.h : 40.h, // Hauteur adaptative
       child: widget.selectedSurahNumber == null
           ? _buildSurahList()
           : _buildSelectedSurah(),
@@ -211,67 +211,90 @@ class _SurahSelectorState extends State<SurahSelector> {
   Widget _buildSurahChip(int surahNumber) {
     final surahName = _getSurahName(surahNumber);
     final surahNameFrench = _getSurahNameFrench(surahNumber);
+    final isSelected = widget.selectedSurahNumber == surahNumber;
     
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 8.h),
-      child: InkWell(
-        onTap: () => widget.onSurahSelected(surahNumber),
-        borderRadius: BorderRadius.circular(8.r),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-          decoration: BoxDecoration(
-            color: AppConstants.primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(
-              color: AppConstants.primaryColor.withOpacity(0.3),
-            ),
+    return GestureDetector(
+      onTap: () => widget.onSurahSelected(surahNumber),
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 3.w),
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+        constraints: BoxConstraints(
+          maxWidth: 100.w, // Limiter la largeur pour éviter les débordements
+          minHeight: widget.showSearch ? 40.h : 30.h,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppConstants.primaryColor 
+              : Colors.grey[100],
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(
+            color: isSelected 
+                ? AppConstants.primaryColor 
+                : Colors.grey[300]!,
+            width: 1,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 20.w,
-                    height: 20.h,
-                    decoration: BoxDecoration(
-                      color: AppConstants.primaryColor,
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '$surahNumber',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 14.w,
+                  height: 14.h,
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                        ? Colors.white 
+                        : AppConstants.primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$surahNumber',
+                      style: TextStyle(
+                        color: isSelected 
+                            ? AppConstants.primaryColor 
+                            : Colors.white,
+                        fontSize: 7.sp,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  SizedBox(width: 8.w),
-                  Text(
+                ),
+                SizedBox(width: 4.w),
+                Flexible(
+                  child: Text(
                     surahName,
                     style: AppTheme.arabicTextStyle(
-                      fontSize: 12.sp,
-                      color: AppConstants.primaryColor,
+                      fontSize: 9.sp,
+                      color: isSelected 
+                          ? Colors.white 
+                          : AppConstants.primaryColor,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
-              SizedBox(height: 2.h),
+                ),
+              ],
+            ),
+            if (widget.showSearch) ...[
+              SizedBox(height: 1.h),
               Text(
                 surahNameFrench,
                 style: TextStyle(
-                  fontSize: 8.sp,
-                  color: AppConstants.secondaryTextColor,
+                  fontSize: 6.sp,
+                  color: isSelected 
+                      ? Colors.white.withOpacity(0.9) 
+                      : AppConstants.secondaryTextColor,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
             ],
-          ),
+          ],
         ),
       ),
     );

@@ -12,6 +12,8 @@ class AyahTile extends StatefulWidget {
   final bool isHighlighted;
   final bool isPlaying;
   final bool showFavoriteButton;
+  final bool isReadingMode; // Mode lecture concentrée
+  final double textSizeMultiplier; // Multiplicateur de taille de texte
   final VoidCallback? onTap;
   final VoidCallback? onPlay;
   final VoidCallback? onFavorite;
@@ -24,6 +26,8 @@ class AyahTile extends StatefulWidget {
     this.isHighlighted = false,
     this.isPlaying = false,
     this.showFavoriteButton = true,
+    this.isReadingMode = false,
+    this.textSizeMultiplier = 1.0,
     this.onTap,
     this.onPlay,
     this.onFavorite,
@@ -108,27 +112,28 @@ class _AyahTileState extends State<AyahTile>
               onTap: widget.onTap,
               borderRadius: BorderRadius.circular(12.r),
               child: Padding(
-                padding: EdgeInsets.all(16.w),
+                padding: EdgeInsets.all(widget.isReadingMode ? 12.w : 16.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // En-tête avec numéro d'ayah et actions
                     _buildHeader(),
-                    
+
                     SizedBox(height: 12.h),
-                    
+
                     // Texte arabe de l'ayah
                     _buildArabicText(),
-                    
+
                     // Traduction (si activée)
-                    if (widget.showTranslation && widget.ayah.translation != null)
+                    if (widget.showTranslation &&
+                        widget.ayah.translation != null)
                       _buildTranslation(),
-                    
+
                     // Informations supplémentaires (si étendues)
                     if (_isExpanded) _buildAdditionalInfo(),
-                    
+
                     SizedBox(height: 8.h),
-                    
+
                     // Boutons d'action
                     _buildActionButtons(),
                   ],
@@ -142,6 +147,38 @@ class _AyahTileState extends State<AyahTile>
   }
 
   Widget _buildHeader() {
+    // En mode lecture concentrée, en-tête ultra-minimaliste
+    if (widget.isReadingMode) {
+      return Row(
+        children: [
+          Container(
+            width: 24.w,
+            height: 24.h,
+            decoration: BoxDecoration(
+              color: widget.isHighlighted
+                  ? AppConstants.primaryColor
+                  : AppConstants.primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Center(
+              child: Text(
+                '${widget.ayah.numberInSurah}',
+                style: TextStyle(
+                  color: widget.isHighlighted
+                      ? Colors.white
+                      : AppConstants.primaryColor,
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+          const Spacer(),
+        ],
+      );
+    }
+
+    // En-tête normale
     return Row(
       children: [
         // Numéro d'ayah
@@ -170,9 +207,9 @@ class _AyahTileState extends State<AyahTile>
             ),
           ),
         ),
-        
+
         SizedBox(width: 12.w),
-        
+
         // Informations de l'ayah
         Expanded(
           child: Column(
@@ -181,11 +218,11 @@ class _AyahTileState extends State<AyahTile>
               Text(
                 'Verset ${widget.ayah.numberInSurah}',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: widget.isHighlighted
-                      ? AppConstants.primaryColor
-                      : AppConstants.textColor,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: widget.isHighlighted
+                          ? AppConstants.primaryColor
+                          : AppConstants.textColor,
+                    ),
               ),
               Text(
                 'Juz ${widget.ayah.juz} • Page ${widget.ayah.page}',
@@ -194,7 +231,7 @@ class _AyahTileState extends State<AyahTile>
             ],
           ),
         ),
-        
+
         // Indicateur de lecture
         if (widget.isPlaying)
           Container(
@@ -230,15 +267,20 @@ class _AyahTileState extends State<AyahTile>
   Widget _buildArabicText() {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 8.h),
+      padding: EdgeInsets.symmetric(
+        vertical: widget.isReadingMode ? 12.h : 8.h,
+      ),
       child: Text(
         widget.ayah.text,
         style: AppTheme.arabicTextStyle(
-          fontSize: 20.sp,
+          fontSize: (widget.isReadingMode ? 22.sp : 20.sp) *
+              widget.textSizeMultiplier,
           color: widget.isHighlighted
               ? AppConstants.primaryColor
               : AppConstants.textColor,
-          height: 2.0,
+          height: widget.isReadingMode
+              ? 2.2
+              : 2.0, // Plus d'espacement en mode lecture
         ),
         textAlign: TextAlign.justify,
         textDirection: TextDirection.rtl,
@@ -261,9 +303,9 @@ class _AyahTileState extends State<AyahTile>
       child: Text(
         widget.ayah.translation ?? _getDefaultTranslation(),
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          fontStyle: FontStyle.italic,
-          height: 1.4,
-        ),
+              fontStyle: FontStyle.italic,
+              height: 1.4,
+            ),
         textAlign: TextAlign.justify,
       ),
     );
@@ -283,9 +325,9 @@ class _AyahTileState extends State<AyahTile>
           Text(
             'Informations détaillées',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppConstants.primaryColor,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: AppConstants.primaryColor,
+                ),
           ),
           SizedBox(height: 8.h),
           _buildInfoRow('Numéro global', '${widget.ayah.number}'),
@@ -294,8 +336,7 @@ class _AyahTileState extends State<AyahTile>
           _buildInfoRow('Page', '${widget.ayah.page}'),
           _buildInfoRow('Ruku', '${widget.ayah.ruku}'),
           _buildInfoRow('Hizb Quarter', '${widget.ayah.hizbQuarter}'),
-          if (widget.ayah.sajda)
-            _buildInfoRow('Sajda', 'Oui', isSpecial: true),
+          if (widget.ayah.sajda) _buildInfoRow('Sajda', 'Oui', isSpecial: true),
         ],
       ),
     );
@@ -314,9 +355,9 @@ class _AyahTileState extends State<AyahTile>
           Text(
             value,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: isSpecial ? AppConstants.secondaryColor : null,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: isSpecial ? AppConstants.secondaryColor : null,
+                ),
           ),
         ],
       ),
@@ -324,54 +365,81 @@ class _AyahTileState extends State<AyahTile>
   }
 
   Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        // Bouton lecture
-        _buildActionButton(
-          icon: widget.isPlaying ? Icons.pause : Icons.play_arrow,
-          label: widget.isPlaying ? 'Pause' : 'Lire',
-          onPressed: widget.onPlay,
-          color: AppConstants.primaryColor,
-        ),
-        
-        // Bouton favori
-        if (widget.showFavoriteButton)
+    // En mode lecture concentrée, boutons très minimalistes
+    if (widget.isReadingMode) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          // Seuls les boutons essentiels
+          if (widget.showFavoriteButton)
+            IconButton(
+              icon: Icon(
+                Icons.favorite_border,
+                size: 16.sp,
+                color: AppConstants.favoriteColor.withOpacity(0.6),
+              ),
+              onPressed: widget.onFavorite,
+              tooltip: 'Ajouter aux favoris',
+              padding: EdgeInsets.all(4.w),
+              constraints: BoxConstraints(
+                minWidth: 24.w,
+                minHeight: 24.h,
+              ),
+            ),
+        ],
+      );
+    }
+
+    // Mode normal avec tous les boutons
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // Bouton lecture
           _buildActionButton(
-            icon: Icons.favorite_border,
-            label: 'Favori',
-            onPressed: widget.onFavorite,
-            color: AppConstants.favoriteColor,
+            icon: widget.isPlaying ? Icons.pause : Icons.play_arrow,
+            label: widget.isPlaying ? 'Pause' : 'Lire',
+            onPressed: widget.onPlay,
+            color: AppConstants.primaryColor,
           ),
-        
-        // Bouton copier
-        _buildActionButton(
-          icon: Icons.copy,
-          label: 'Copier',
-          onPressed: () => _copyToClipboard(),
-          color: AppConstants.infoColor,
-        ),
-        
-        // Bouton partager
-        _buildActionButton(
-          icon: Icons.share,
-          label: 'Partager',
-          onPressed: () => _shareAyah(),
-          color: AppConstants.successColor,
-        ),
-        
-        // Bouton plus d'infos
-        _buildActionButton(
-          icon: _isExpanded ? Icons.expand_less : Icons.expand_more,
-          label: 'Info',
-          onPressed: () {
-            setState(() {
-              _isExpanded = !_isExpanded;
-            });
-          },
-          color: AppConstants.secondaryTextColor,
-        ),
-      ],
+
+          SizedBox(width: 8.w),
+
+          // Bouton favori
+          if (widget.showFavoriteButton) ...[
+            _buildActionButton(
+              icon: Icons.favorite_border,
+              label: 'Favori',
+              onPressed: widget.onFavorite,
+              color: AppConstants.favoriteColor,
+            ),
+            SizedBox(width: 8.w),
+          ],
+
+          // Bouton copier
+          _buildActionButton(
+            icon: Icons.copy,
+            label: 'Copier',
+            onPressed: () => _copyToClipboard(),
+            color: AppConstants.infoColor,
+          ),
+
+          SizedBox(width: 8.w),
+
+          // Bouton plus d'infos
+          _buildActionButton(
+            icon: _isExpanded ? Icons.expand_less : Icons.expand_more,
+            label: 'Info',
+            onPressed: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            color: AppConstants.secondaryTextColor,
+          ),
+        ],
+      ),
     );
   }
 
@@ -381,28 +449,38 @@ class _AyahTileState extends State<AyahTile>
     required VoidCallback? onPressed,
     required Color color,
   }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          onPressed: onPressed,
-          icon: Icon(icon),
-          color: color,
-          iconSize: 20.sp,
-          constraints: BoxConstraints(
-            minWidth: 32.w,
-            minHeight: 32.h,
-          ),
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(8.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+        constraints: BoxConstraints(
+          minWidth: 50.w,
+          maxWidth: 70.w,
         ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10.sp,
-            color: color,
-            fontWeight: FontWeight.w500,
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 18.sp,
+            ),
+            SizedBox(height: 2.h),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 9.sp,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -427,7 +505,7 @@ class _AyahTileState extends State<AyahTile>
         'Guide-nous dans le droit chemin,',
         'le chemin de ceux que Tu as comblés de faveurs, non pas de ceux qui ont encouru Ta colère, ni des égarés.',
       ];
-      
+
       if (widget.ayah.numberInSurah <= translations.length) {
         return translations[widget.ayah.numberInSurah - 1];
       }
@@ -436,25 +514,15 @@ class _AyahTileState extends State<AyahTile>
   }
 
   void _copyToClipboard() {
-    final text = '${widget.ayah.text}\n\n${widget.ayah.translation ?? _getDefaultTranslation()}\n\nSourate ${widget.surahNumber} - Verset ${widget.ayah.numberInSurah}';
-    
+    final text =
+        '${widget.ayah.text}\n\n${widget.ayah.translation ?? _getDefaultTranslation()}\n\nSourate ${widget.surahNumber} - Verset ${widget.ayah.numberInSurah}';
+
     Clipboard.setData(ClipboardData(text: text));
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Verset copié dans le presse-papiers'),
         duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _shareAyah() {
-    // Implémenter le partage
-    // Share.share(...)
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fonctionnalité de partage à venir'),
-        backgroundColor: AppConstants.infoColor,
       ),
     );
   }

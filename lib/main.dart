@@ -1,15 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/read_screen.dart';
 import 'screens/listen_screen.dart';
-import 'screens/favorites_screen.dart';
+import 'screens/favorites_screen_modern.dart';
+import 'screens/settings_screen.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_constants.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Configuration des performances
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // Configuration de la barre de statut
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.white,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
+
   runApp(
     ProviderScope(
       child: MyApp(),
@@ -21,10 +42,27 @@ class MyApp extends ConsumerWidget {
   MyApp({Key? key}) : super(key: key);
 
   final GoRouter _router = GoRouter(
+    initialLocation: '/splash',
     routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/',
         builder: (context, state) => const MainNavigationScreen(),
+      ),
+      GoRoute(
+        path: '/read',
+        builder: (context, state) => const ReadScreen(),
+      ),
+      GoRoute(
+        path: '/listen',
+        builder: (context, state) => const ListenScreen(),
+      ),
+      GoRoute(
+        path: '/prayers',
+        builder: (context, state) => const PrayersScreen(),
       ),
       GoRoute(
         path: '/surah/:number',
@@ -32,6 +70,10 @@ class MyApp extends ConsumerWidget {
           final surahNumber = int.parse(state.pathParameters['number']!);
           return ReadScreen(surahNumber: surahNumber);
         },
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );
@@ -51,6 +93,13 @@ class MyApp extends ConsumerWidget {
           themeMode: ThemeMode.system,
           routerConfig: _router,
           locale: const Locale('fr', 'FR'),
+          builder: (context, child) {
+            // Configuration pour éviter les débordements de pixels
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+              child: child!,
+            );
+          },
         );
       },
     );
@@ -70,8 +119,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const ReadScreen(),
+    const PrayersScreen(),
     const ListenScreen(),
-    const FavoritesScreen(),
   ];
 
   @override
@@ -116,17 +165,17 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.menu_book_outlined),
               activeIcon: Icon(Icons.menu_book),
-              label: 'Lire',
+              label: 'Coran',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.mosque_outlined),
+              activeIcon: Icon(Icons.mosque),
+              label: 'Prières',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.mic_outlined),
               activeIcon: Icon(Icons.mic),
               label: 'Écouter',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_outline),
-              activeIcon: Icon(Icons.favorite),
-              label: 'Favoris',
             ),
           ],
         ),

@@ -1,6 +1,6 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=/workspace/flutter
-FLUTTER_APPLICATION_PATH=/workspace/quran_ai_reader
+FLUTTER_ROOT=/Users/abdoulayeniangaly/development/flutter
+FLUTTER_APPLICATION_PATH=/Users/abdoulayeniangaly/Downloads/Quran
 COCOAPODS_PARALLEL_CODE_SIGN=true
 FLUTTER_TARGET=lib/main.dart
 FLUTTER_BUILD_DIR=build
