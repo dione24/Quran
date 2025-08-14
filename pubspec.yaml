@@ -81,9 +81,9 @@ dependencies:
   firebase_analytics: ^10.7.4
   cloud_firestore: ^4.13.6
 
-  # Notifications
-  flutter_local_notifications: ^16.3.0
-  timezone: ^0.9.2
+  # Notifications (temporairement désactivé pour compilation)
+  # flutter_local_notifications: ^16.3.0
+  # timezone: ^0.9.2
 
 dev_dependencies:
   flutter_test:
